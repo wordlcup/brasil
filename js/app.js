@@ -670,6 +670,16 @@ function init() {
   renderField();
   updateStrength();
 
+  // Checa se tem um time para carregar via URL (?time=UUID)
+  const urlParams = new URLSearchParams(window.location.search);
+  const teamId = urlParams.get('time');
+  if (teamId) {
+    // Carrega o time do Supabase
+    loadTeamFromDatabase(teamId);
+    return; // Não precisa checar o hash
+  }
+
+  // Checa link antigo via hash (#team=)
   const hash = window.location.hash;
   if (hash.startsWith('#team=')) {
     const teamData = hash.replace('#team=', '');
