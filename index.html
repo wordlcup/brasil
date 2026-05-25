@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Copa 2026 Brasil — Escalações & Monte Seu Time</title>
-  <meta name="description" content="Monte a escalação do Brasil para a Copa do Mundo 2026. Escolha seus jogadores, defina a formação e compartilhe com seus amigos.">
+  <meta name="description"
+    content="Monte a escalação do Brasil para a Copa do Mundo 2026. Escolha seus jogadores, defina a formação e compartilhe com seus amigos.">
   <meta property="og:title" content="Copa 2026 Brasil — Monte Seu Time">
   <meta property="og:description" content="Monte a escalação ideal do Brasil para a Copa 2026 e compartilhe!">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
   <!-- NAVBAR -->
@@ -27,45 +30,46 @@
       <li><a href="#builder" data-section="builder" onclick="navigateTo('builder')">Monte seu Time</a></li>
       <li><a href="#betting" data-section="betting" onclick="navigateTo('betting')">Bolão</a></li>
       <li><a href="#leaderboard" data-section="leaderboard" onclick="navigateTo('leaderboard')">Ranking Global</a></li>
-      <li><a href="#" id="loginNavLink" onclick="handleLoginClick(event)" style="color: var(--primary); font-weight: bold;">🔑 Entrar</a></li>
+      <li><a href="#" id="loginNavLink" onclick="handleLoginClick(event)"
+          style="color: var(--primary); font-weight: bold;">🔑 Entrar</a></li>
       <li><a href="admin.html" style="color: var(--text-muted); font-size: 0.9rem;">⚙️ Admin</a></li>
     </ul>
   </nav>
 
   <!-- HERO SECTION -->
   <section class="hero" id="home">
-    <div class="hero-badge">
-      <span>🏆</span> Copa do Mundo 2026 — Estados Unidos, Canadá & México
+    <div class="hero-badge" style="background: #111; color: #fff; border: 1px solid #333; text-transform: uppercase;">
+      <span>🏆</span> Promoção de Lançamento — Escale e Concorra
     </div>
-    <h1>
-      Seleção<br>
-      <span class="gradient-text">Brasileira 2026</span>
+    <h1 style="text-transform: uppercase; font-style: italic;">
+      SELEÇÃO BRASILEIRA<br>
+      <span style="color: #fff; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);">COPA 2026</span>
     </h1>
-    <p>
-      Explore o elenco completo dos 26 convocados e monte sua escalação ideal
-      com o campo interativo estilo eFootball.
+    <p style="color: rgba(255,255,255,0.9); font-weight: 500;">
+      Cadastre-se, monte sua escalação e faça seus palpites no Bolão. A melhor experiência de apostas e fantasy!
     </p>
     <div class="hero-actions">
-      <button class="btn btn-primary" onclick="navigateTo('squad')">
-        <span>⚽</span> Ver Elenco
+      <button class="btn btn-primary" onclick="navigateTo('builder')"
+        style="background: #111; color: #fff; box-shadow: none;">
+        <span>🔥</span> CRIAR CONTA AGORA
       </button>
-      <button class="btn btn-gold" onclick="navigateTo('builder')">
-        <span>🏟️</span> Monte seu Time
+      <button class="btn btn-gold" onclick="navigateTo('squad')"
+        style="background: #fff; color: #111; box-shadow: none;">
+        VER ELENCO
       </button>
-    </div>
-    <div class="stars-decoration" style="margin-top: 32px;">
-      <span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span>
     </div>
   </section>
 
   <!-- DASHBOARD JOGADORES -->
-  <section class="section" id="top-players-dashboard" style="background: rgba(255,255,255,0.02); padding-top: 24px; padding-bottom: 24px;">
+  <section class="section" id="top-players-dashboard"
+    style="background: #ffffff; border-bottom: 1px solid var(--border-subtle); padding-top: 40px; padding-bottom: 40px;">
     <div class="section-header" style="margin-bottom: 24px;">
       <h2 style="font-size: 1.8rem;">🔥 Craques da Copa</h2>
       <p>Os jogadores com maior pontuação no Cartola Brasil</p>
     </div>
-    
-    <div id="topPlayersContainer" style="display: flex; gap: 16px; overflow-x: auto; padding: 16px; align-items: center; justify-content: flex-start; max-width: 1000px; margin: 0 auto;">
+
+    <div id="topPlayersContainer"
+      style="display: flex; gap: 16px; overflow-x: auto; padding: 16px; align-items: center; justify-content: flex-start; max-width: 1000px; margin: 0 auto;">
       <div style="color: var(--text-muted); text-align: center; width: 100%;">Carregando craques...</div>
     </div>
   </section>
@@ -75,21 +79,26 @@
   <!-- BOLÃO DA COPA SECTION -->
   <section class="section" id="betting" style="display: none;">
     <div class="section-header">
-      <h2>🎲 Bolão da Copa</h2>
+      <h2 style="color: var(--primary);">🎲 Bolão da Copa</h2>
       <p>Adivinhe os placares dos próximos jogos e ganhe pontos extras para o seu time!</p>
-      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
-        Placar Exato: <strong>+5 pts</strong> | Acertou Vencedor/Empate: <strong>+1 pt</strong>
+      <div
+        style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px; background: #f0f8ff; border: 1px solid #cce5ff; display: inline-block; padding: 6px 12px; border-radius: 4px;">
+        Placar Exato: <strong style="color: var(--primary);">+5 pts</strong> | Acertou Vencedor/Empate: <strong
+          style="color: var(--primary);">+1 pt</strong>
       </div>
     </div>
 
-    <div id="bettingAuthMessage" style="text-align: center; padding: 32px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+    <div id="bettingAuthMessage"
+      style="text-align: center; padding: 32px; background: #f8fafc; border-radius: 8px; border: 2px dashed #cbd5e1;">
       <div style="font-size: 3rem; margin-bottom: 16px;">🔑</div>
       <h3 style="margin-bottom: 8px;">Identifique-se para Palpitar</h3>
-      <p style="color: var(--text-muted); margin-bottom: 16px;">Você precisa estar logado no seu time para registrar seus palpites.</p>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">Você precisa estar logado no seu time para registrar
+        seus palpites.</p>
       <button class="btn btn-primary" onclick="openLoginModal()">Entrar no Meu Time</button>
     </div>
 
-    <div id="bettingContainer" style="display: none; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+    <div id="bettingContainer"
+      style="display: none; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
       <!-- Jogos renderizados via JS -->
     </div>
   </section>
@@ -127,11 +136,15 @@
       <!-- CAMPO -->
       <div class="field-wrapper">
         <!-- Banner de Visualização -->
-        <div id="viewingBanner" style="display:none; background: linear-gradient(135deg, rgba(0,176,255,0.15), rgba(0,176,255,0.05)); border: 1px solid rgba(0,176,255,0.3); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: none; align-items: center; gap: 12px;">
+        <div id="viewingBanner"
+          style="display:none; background: #f8fafc; border: 1px solid var(--blue-accent); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; align-items: center; gap: 12px;">
           <span style="font-size: 1.5rem;">👁️</span>
           <div>
             <div style="font-weight: bold; color: var(--blue-accent);" id="viewingTeamName">Time</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">Treinador: <span id="viewingOwnerName"></span> &mdash; <button onclick="resetBuilder(); hideViewingBanner()" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:0.85rem;padding:0;">Monte o seu próprio →</button></div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Treinador: <span id="viewingOwnerName"></span>
+              &mdash; <button onclick="resetBuilder(); hideViewingBanner()"
+                style="background:none;border:none;color:var(--primary);font-weight:bold;cursor:pointer;font-size:0.85rem;padding:0;">Monte
+                o seu próprio →</button></div>
           </div>
         </div>
         <div class="field-controls">
@@ -198,19 +211,22 @@
       <h2>🏆 Ranking Global</h2>
       <p>Acompanhe os melhores times com base no desempenho real na Copa!</p>
     </div>
-    
+
     <div class="leaderboard-container">
-      <div class="loading-ranking" id="loadingRanking" style="text-align: center; padding: 40px; color: var(--text-muted);">
+      <div class="loading-ranking" id="loadingRanking"
+        style="text-align: center; padding: 40px; color: var(--text-muted);">
         Carregando ranking do banco de dados...
       </div>
       <div style="overflow-x: auto;">
-        <table class="leaderboard-table" id="leaderboardTable" style="display: none; width: 100%; border-collapse: collapse;">
+        <table class="leaderboard-table" id="leaderboardTable"
+          style="display: none; width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm);">
           <thead>
-            <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
-              <th style="padding: 12px;">Pos</th>
-              <th style="padding: 12px;">Nome do Time</th>
-              <th style="padding: 12px;">Treinador</th>
-              <th style="padding: 12px;">Pts</th>
+            <tr
+              style="border-bottom: 1px solid var(--border-subtle); background: var(--bg-glass-light); text-align: left;">
+              <th style="padding: 14px 12px; color: var(--text-secondary);">Pos</th>
+              <th style="padding: 14px 12px; color: var(--text-secondary);">Nome do Time</th>
+              <th style="padding: 14px 12px; color: var(--text-secondary);">Treinador</th>
+              <th style="padding: 14px 12px; color: var(--text-secondary);">Pts</th>
             </tr>
           </thead>
           <tbody id="leaderboardBody">
@@ -243,31 +259,36 @@
   <div class="share-modal-overlay" id="saveModal">
     <div class="share-modal" style="max-width: 440px;">
       <h3>🏆 Salvar Time no Ranking</h3>
-      <p style="color: var(--text-muted); margin-bottom: 4px;">Cadastre seu time para competir no <strong style="color: white;">Ranking Global</strong> e ganhe um link para compartilhar sua escalação!</p>
-      
+      <p style="color: var(--text-muted); margin-bottom: 4px;">Cadastre seu time para competir no <strong
+          style="color: white;">Ranking Global</strong> e ganhe um link para compartilhar sua escalação!</p>
+
       <div style="margin-top: 16px; text-align: left; display: flex; flex-direction: column; gap: 12px;">
         <div>
           <label style="color: var(--text-muted); font-size: 0.85rem;">Seu Nome *</label>
-          <input type="text" id="ownerNameInput" placeholder="Ex: João Silva" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+          <input type="text" id="ownerNameInput" placeholder="Ex: João Silva" class="form-input">
         </div>
         <div>
-          <label style="color: var(--text-muted); font-size: 0.85rem;">Seu E-mail * <span style="color: var(--text-muted); font-weight: normal;">(para acesso futuro)</span></label>
-          <input type="email" id="ownerEmailInput" placeholder="voce@email.com" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Seu E-mail * <span
+              style="color: var(--text-muted); font-weight: normal;">(para acesso futuro)</span></label>
+          <input type="email" id="ownerEmailInput" placeholder="voce@email.com" class="form-input">
         </div>
         <div>
           <label style="color: var(--text-muted); font-size: 0.85rem;">Nome do Time *</label>
-          <input type="text" id="teamNameInput" placeholder="Ex: Galáticos FC" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+          <input type="text" id="teamNameInput" placeholder="Ex: Galáticos FC" class="form-input">
         </div>
         <div>
-          <label style="color: var(--text-muted); font-size: 0.85rem;">Definir Senha * <span style="color: var(--text-muted); font-weight: normal;">(para acessar e palpitar)</span></label>
-          <input type="password" id="ownerPasswordInput" placeholder="Defina uma senha segura" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Definir Senha * <span
+              style="color: var(--text-muted); font-weight: normal;">(para acessar e palpitar)</span></label>
+          <input type="password" id="ownerPasswordInput" placeholder="Defina uma senha segura" class="form-input">
         </div>
       </div>
 
-      <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 12px;">🔒 Seu e-mail não será exibido publicamente.</p>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 12px;">🔒 Seu e-mail não será exibido
+        publicamente.</p>
 
       <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <button class="btn btn-sm btn-primary" onclick="submitTeamToRanking()" style="flex: 1;" id="submitTeamBtn">Salvar e Gerar Link</button>
+        <button class="btn btn-sm btn-primary" onclick="submitTeamToRanking()" style="flex: 1;"
+          id="submitTeamBtn">Salvar e Gerar Link</button>
         <button class="btn btn-sm btn-secondary" onclick="closeSaveModal()" style="flex: 1;">Cancelar</button>
       </div>
     </div>
@@ -284,7 +305,8 @@
         <div style="font-size: 3rem;">🏆</div>
         <h3 style="margin: 8px 0 4px;">Time Salvo com Sucesso!</h3>
         <p id="savedTeamTitle" style="color: var(--blue-accent); font-weight: bold;"></p>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Seu link exclusivo está pronto! Compartilhe com seus amigos.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Seu link exclusivo está pronto! Compartilhe com seus
+          amigos.</p>
       </div>
       <div class="share-link-box" style="margin-bottom: 12px;">
         <input type="text" id="teamShareLink" readonly style="font-size: 0.85rem;">
@@ -292,7 +314,9 @@
       </div>
       <div style="display: flex; gap: 8px;">
         <button class="btn btn-sm btn-gold" onclick="openWhatsApp()" style="flex: 1;">📲 WhatsApp</button>
-        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('teamSavedModal').classList.remove('active')" style="flex: 1;">Fechar</button>
+        <button class="btn btn-sm btn-secondary"
+          onclick="document.getElementById('teamSavedModal').classList.remove('active')"
+          style="flex: 1;">Fechar</button>
       </div>
     </div>
   </div>
@@ -302,16 +326,17 @@
     <div class="share-modal" style="max-width: 400px; text-align: center;">
       <div style="font-size: 3rem; margin-bottom: 8px;">🔑</div>
       <h3>Acessar Meu Time</h3>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Digite o e-mail e a senha que você usou para salvar sua escalação.</p>
-      
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Digite o e-mail e a senha que você
+        usou para salvar sua escalação.</p>
+
       <div style="text-align: left; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
         <div>
           <label style="color: var(--text-muted); font-size: 0.85rem;">E-mail</label>
-          <input type="email" id="loginEmailInput" placeholder="voce@email.com" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+          <input type="email" id="loginEmailInput" placeholder="voce@email.com" class="form-input">
         </div>
         <div>
           <label style="color: var(--text-muted); font-size: 0.85rem;">Senha</label>
-          <input type="password" id="loginPasswordInput" placeholder="Sua senha secreta" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+          <input type="password" id="loginPasswordInput" placeholder="Sua senha secreta" class="form-input">
         </div>
       </div>
 
@@ -328,4 +353,5 @@
   <script src="js/supabase.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>

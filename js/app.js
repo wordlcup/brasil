@@ -35,7 +35,7 @@ function navigateTo(section) {
     document.getElementById('builder').style.display = 'none';
     document.getElementById('betting').style.display = 'none';
     document.getElementById('leaderboard').style.display = 'block';
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
     loadLeaderboard();
   } else if (section === 'betting') {
     document.getElementById('home').style.display = 'none';
@@ -43,7 +43,7 @@ function navigateTo(section) {
     document.getElementById('builder').style.display = 'none';
     document.getElementById('leaderboard').style.display = 'none';
     document.getElementById('betting').style.display = 'block';
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
     loadBettingMatches();
   } else {
     document.getElementById('home').style.display = 'flex';
@@ -51,7 +51,7 @@ function navigateTo(section) {
     document.getElementById('builder').style.display = 'block';
     document.getElementById('leaderboard').style.display = 'none';
     document.getElementById('betting').style.display = 'none';
-    
+
     const el = document.getElementById(section);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -319,7 +319,7 @@ function renderField() {
           
         ${isFilled ? `
           <foreignObject x="${cx - 20}" y="${cy - 24}" width="40" height="40" style="border-radius: 50%; overflow: hidden; pointer-events: none;">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; border-radius: 50%; background: #111827; display: flex; align-items: center; justify-content: center;">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center;">
               <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" style="width: 100%; height: 100%; object-fit: cover;" alt=""/>
             </div>
           </foreignObject>
@@ -781,7 +781,7 @@ async function submitTeamToRanking() {
   }
 
   const playerIds = lineup.map(p => p.id);
-  
+
   const btn = document.getElementById('submitTeamBtn');
   btn.disabled = true;
   btn.textContent = "Salvando...";
@@ -791,11 +791,11 @@ async function submitTeamToRanking() {
     const { data, error } = await supabase
       .from('teams')
       .insert([
-        { 
+        {
           owner_name: ownerName,
           owner_email: ownerEmail,
-          team_name: teamName, 
-          formation: currentFormation, 
+          team_name: teamName,
+          formation: currentFormation,
           lineup: playerIds,
           password: ownerPassword
         }
@@ -821,7 +821,7 @@ async function submitTeamToRanking() {
       updateLoginNavBar();
       loadBettingMatches();
       const shareUrl = buildTeamUrl(lastSavedTeamId);
-      
+
       // Mostra o modal de sucesso com o link
       document.getElementById('savedTeamTitle').textContent = teamName;
       document.getElementById('teamShareLink').value = shareUrl;
@@ -938,10 +938,10 @@ async function loadLeaderboard() {
   const loading = document.getElementById('loadingRanking');
   const table = document.getElementById('leaderboardTable');
   const tbody = document.getElementById('leaderboardBody');
-  
+
   loading.style.display = 'block';
   table.style.display = 'none';
-  
+
   try {
     const { data, error } = await supabase
       .from('teams')
@@ -970,18 +970,18 @@ async function loadLeaderboard() {
       if (pos === 3) posHtml = '🥉 3º';
 
       const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      tr.style.borderBottom = '1px solid var(--border-subtle)';
       tr.style.cursor = 'pointer';
       tr.style.transition = 'background 0.2s';
-      tr.onmouseenter = () => tr.style.background = 'rgba(255,255,255,0.03)';
+      tr.onmouseenter = () => tr.style.background = 'var(--bg-glass-light)';
       tr.onmouseleave = () => tr.style.background = 'transparent';
       tr.onclick = () => loadTeamFromDatabase(team.id);
       tr.title = 'Clique para ver a escalação';
-      
+
       tr.innerHTML = `
-        <td style="padding: 16px 12px; font-weight: bold; color: ${pos <= 3 ? '#ffd700' : 'white'};">${posHtml}</td>
+        <td style="padding: 16px 12px; font-weight: bold; color: ${pos <= 3 ? '#f59e0b' : 'var(--text-primary)'};">${posHtml}</td>
         <td style="padding: 16px 12px;">
-          <div style="font-weight: bold;">${team.team_name}</div>
+          <div style="font-weight: bold; color: var(--text-primary);">${team.team_name}</div>
           <span style="font-size:0.8rem;color:var(--text-muted);font-weight:normal;">${team.formation}</span>
         </td>
         <td style="padding: 16px 12px; color: var(--text-muted);">${team.owner_name}</td>
@@ -1042,10 +1042,10 @@ function logoutUser() {
   loggedTeamId = null;
   loggedOwnerName = null;
   updateLoginNavBar();
-  
+
   // Atualiza exibição do bolão
   loadBettingMatches();
-  
+
   alert("Você saiu do seu time.");
 }
 
@@ -1103,15 +1103,15 @@ async function loginUser() {
     document.getElementById('loginEmailInput').value = '';
 
     closeLoginModal();
-    
+
     alert(`✅ Bem-vindo de volta, ${data[0].owner_name}! Carregando sua escalação e liberando Bolão...`);
-    
+
     // Reaproveitamos a função que carrega time do banco
     loadTeamFromDatabase(teamId);
-    
+
     // Atualiza aba de apostas
     loadBettingMatches();
-    
+
   } catch (err) {
     console.error(err);
     alert("Erro ao fazer login.");
@@ -1143,20 +1143,20 @@ async function loadTopPlayers() {
     }
 
     container.innerHTML = '';
-    
+
     data.forEach((stat, index) => {
       const player = PLAYERS.find(p => p.id === stat.player_id);
       if (!player) return;
 
       const fileName = player.shortName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
       const photoSrc = `assets/photos/${fileName}.jpg`;
-      
+
       const posHtml = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}º`;
       const points = parseFloat(stat.total_points).toFixed(1);
 
       const card = document.createElement('div');
-      card.style.background = index < 3 ? 'linear-gradient(180deg, rgba(255,215,0,0.1) 0%, rgba(0,0,0,0.4) 100%)' : 'rgba(0,0,0,0.3)';
-      card.style.border = index < 3 ? '1px solid rgba(255,215,0,0.3)' : '1px solid rgba(255,255,255,0.05)';
+      card.style.background = index < 3 ? 'linear-gradient(180deg, #fffbeb 0%, #ffffff 100%)' : '#ffffff';
+      card.style.border = index < 3 ? '1px solid #fcd34d' : '1px solid var(--border-subtle)';
       card.style.borderRadius = '12px';
       card.style.padding = '16px';
       card.style.minWidth = '140px';
@@ -1167,15 +1167,15 @@ async function loadTopPlayers() {
       card.style.alignItems = 'center';
 
       card.innerHTML = `
-        <div style="position: absolute; top: -10px; left: -10px; font-size: 1.5rem; background: var(--bg-dark); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.5);">${posHtml}</div>
-        <div style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 2px solid ${index < 3 ? '#ffd700' : 'var(--border-color)'}; margin-bottom: 12px; background: #333;">
+        <div style="position: absolute; top: -10px; left: -10px; font-size: 1.5rem; background: #ffffff; border: 1px solid var(--border-subtle); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">${posHtml}</div>
+        <div style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 2px solid ${index < 3 ? '#f59e0b' : 'var(--border-subtle)'}; margin-bottom: 12px; background: #f8fafc;">
           <img src="${photoSrc}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%2394a3b8%22%3E%3Cpath%20d%3D%22M12%2012c2.21%200%204-1.79%204-4s-1.79-4-4-4-4%201.79-4%204%201.79%204%204%204zm0%202c-2.67%200-8%201.34-8%204v2h16v-2c0-2.66-5.33-4-8-4z%22%2F%3E%3C%2Fsvg%3E'"/>
         </div>
-        <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 4px;">${player.shortName}</div>
+        <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 4px; color: var(--text-primary);">${player.shortName}</div>
         <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">${player.positionLabel} · ${player.club}</div>
         <div style="font-size: 1.4rem; font-weight: 900; color: var(--blue-accent);">${points} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">pts</span></div>
       `;
-      
+
       container.appendChild(card);
     });
 
@@ -1192,7 +1192,7 @@ async function loadTopPlayers() {
 async function loadBettingMatches() {
   const authMessage = document.getElementById('bettingAuthMessage');
   const bettingContainer = document.getElementById('bettingContainer');
-  
+
   if (!loggedTeamId) {
     authMessage.style.display = 'block';
     bettingContainer.style.display = 'none';
@@ -1225,7 +1225,7 @@ async function loadBettingMatches() {
       .eq('team_id', loggedTeamId);
 
     if (guessesError) throw guessesError;
-    
+
     const userGuesses = {};
     guesses.forEach(g => {
       userGuesses[g.match_id] = g;
@@ -1236,29 +1236,30 @@ async function loadBettingMatches() {
     matches.forEach(match => {
       const existingGuess = userGuesses[match.id];
       const hasGuessed = !!existingGuess;
-      
+
       const el = document.createElement('div');
-      el.style.background = 'rgba(255,255,255,0.03)';
+      el.style.background = '#ffffff';
       el.style.padding = '24px';
       el.style.borderRadius = '12px';
-      el.style.border = '1px solid rgba(255,255,255,0.05)';
+      el.style.border = '1px solid var(--border-subtle)';
       el.style.textAlign = 'center';
+      el.style.boxShadow = 'var(--shadow-sm)';
 
       el.innerHTML = `
-        <h3 style="margin-bottom: 16px;">${match.team_a} x ${match.team_b}</h3>
+        <h3 style="margin-bottom: 16px; color: var(--text-primary); text-transform: uppercase;">${match.team_a} x ${match.team_b}</h3>
         <div style="display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 24px;">
           <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
-            <div style="font-weight: bold; margin-bottom: 8px;">${match.team_a}</div>
-            <input type="number" id="guess_a_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_a : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5); color: white; text-align: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: var(--text-primary);">${match.team_a}</div>
+            <input type="number" id="guess_a_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_a : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; text-align: center;">
           </div>
           <div style="font-size: 1.5rem; font-weight: bold; color: var(--text-muted);">X</div>
           <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
-            <div style="font-weight: bold; margin-bottom: 8px;">${match.team_b}</div>
-            <input type="number" id="guess_b_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_b : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5); color: white; text-align: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: var(--text-primary);">${match.team_b}</div>
+            <input type="number" id="guess_b_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_b : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; text-align: center;">
           </div>
         </div>
-        ${hasGuessed 
-          ? `<div style="color: var(--primary); font-weight: bold;">✅ Palpite Registrado! Aguarde o resultado oficial.</div>` 
+        ${hasGuessed
+          ? `<div style="color: var(--primary); font-weight: bold;">✅ Palpite Registrado! Aguarde o resultado oficial.</div>`
           : `<button class="btn btn-primary" style="width: 100%; max-width: 250px;" onclick="submitGuess('${match.id}')">Salvar Palpite</button>`
         }
       `;
@@ -1310,4 +1311,3 @@ async function submitGuess(matchId) {
     alert("Erro ao salvar palpite: " + err.message);
   }
 }
-
