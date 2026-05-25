@@ -677,6 +677,12 @@ document.getElementById('shareModal').addEventListener('click', (e) => {
 function init() {
   renderPlayerCards();
   renderFormationButtons();
+
+  // Renderiza o campo vazio com a formação padrão inicial
+  renderField();
+  renderSidebarPlayers();
+  updateStrength();
+
   // Carrega Top Players
   loadTopPlayers();
 

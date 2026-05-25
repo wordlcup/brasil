@@ -468,8 +468,8 @@ async function searchPlayerAPI() {
   resultsContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Buscando na RapidAPI... ⏳</div>';
 
   // Nota: O Host exato depende de qual API gratuita você assinou no RapidAPI.
-  // Baseado no seu JSON, este costuma ser o endpoint padrão de busca.
-  const url = `https://free-api-live-football-data.p.rapidapi.com/football-get-search-all?search=${encodeURIComponent(query)}`;
+  // Atualizado para o endpoint correto de busca de jogadores
+  const url = `https://free-api-live-football-data.p.rapidapi.com/football-get-search-players?search=${encodeURIComponent(query)}`;
 
   const options = {
     method: 'GET',
