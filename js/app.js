@@ -809,6 +809,10 @@ async function submitTeamToRanking() {
     // Pega o ID do time recém-inserido
     if (data && data.length > 0) {
       lastSavedTeamId = data[0].id;
+      loggedTeamId = lastSavedTeamId;
+      loggedOwnerName = ownerName;
+      updateLoginNavBar();
+      loadBettingMatches();
       const shareUrl = buildTeamUrl(lastSavedTeamId);
       
       // Mostra o modal de sucesso com o link
@@ -993,6 +997,7 @@ async function loadLeaderboard() {
 // =====================================================
 
 let loggedTeamId = null;
+let loggedOwnerName = null;
 
 function openLoginModal() {
   document.getElementById('loginModal').classList.add('active');
@@ -1000,6 +1005,41 @@ function openLoginModal() {
 
 function closeLoginModal() {
   document.getElementById('loginModal').classList.remove('active');
+}
+
+function updateLoginNavBar() {
+  const navLink = document.getElementById('loginNavLink');
+  if (navLink) {
+    if (loggedTeamId && loggedOwnerName) {
+      navLink.innerHTML = `👤 ${loggedOwnerName}`;
+      navLink.style.color = "var(--green-light)";
+    } else {
+      navLink.innerHTML = `🔑 Entrar`;
+      navLink.style.color = "var(--primary)";
+    }
+  }
+}
+
+function handleLoginClick(e) {
+  if (e) e.preventDefault();
+  if (loggedTeamId) {
+    if (confirm(`Você está logado como "${loggedOwnerName}". Deseja sair (fazer logout)?`)) {
+      logoutUser();
+    }
+  } else {
+    openLoginModal();
+  }
+}
+
+function logoutUser() {
+  loggedTeamId = null;
+  loggedOwnerName = null;
+  updateLoginNavBar();
+  
+  // Atualiza exibição do bolão
+  loadBettingMatches();
+  
+  alert("Você saiu do seu time.");
 }
 
 document.getElementById('loginModal').addEventListener('click', (e) => {
@@ -1034,6 +1074,8 @@ async function loginUser() {
 
     const teamId = data[0].id;
     loggedTeamId = teamId;
+    loggedOwnerName = data[0].owner_name;
+    updateLoginNavBar();
     closeLoginModal();
     
     alert(`Bem-vindo de volta, ${data[0].owner_name}! Carregando sua escalação e liberando Bolão...`);
