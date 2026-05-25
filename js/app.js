@@ -1181,12 +1181,12 @@ async function loadBettingMatches() {
         <div style="display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 24px;">
           <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
             <div style="font-weight: bold; margin-bottom: 8px;">${match.team_a}</div>
-            <input type="number" id="guess_a_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_a : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5);">
+            <input type="number" id="guess_a_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_a : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5); color: white; text-align: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
           </div>
           <div style="font-size: 1.5rem; font-weight: bold; color: var(--text-muted);">X</div>
           <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
             <div style="font-weight: bold; margin-bottom: 8px;">${match.team_b}</div>
-            <input type="number" id="guess_b_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_b : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5);">
+            <input type="number" id="guess_b_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_b : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5); color: white; text-align: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
           </div>
         </div>
         ${hasGuessed 

@@ -1133,3 +1133,14 @@ body::before {
 .stat-color-70 { color: #eab308; }
 .stat-color-60 { color: #f97316; }
 .stat-color-below { color: #ef4444; }
+
+/* ——— SCORE INPUT UTILITY ——— */
+.score-input {
+  color: #ffffff !important;
+}
+.score-input:disabled {
+  color: rgba(255, 255, 255, 0.65) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  cursor: not-allowed;
+}
