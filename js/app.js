@@ -700,6 +700,8 @@ document.addEventListener('DOMContentLoaded', init);
 // SUPABASE / LEADERBOARD / SAVE TEAM LOGIC
 // =====================================================
 
+let lastSavedTeamId = null;
+
 function openSaveModal() {
   const filledCount = lineup.filter(Boolean).length;
   if (filledCount < 11) {
@@ -717,6 +719,14 @@ document.getElementById('saveModal').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) closeSaveModal();
 });
 
+document.getElementById('teamSavedModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('active');
+});
+
+function buildTeamUrl(teamId) {
+  return window.location.origin + window.location.pathname + '?time=' + teamId;
+}
+
 async function submitTeamToRanking() {
   if (typeof supabase === 'undefined') {
     alert("Supabase não configurado. Verifique o arquivo js/supabase.js");
@@ -724,10 +734,17 @@ async function submitTeamToRanking() {
   }
 
   const ownerName = document.getElementById('ownerNameInput').value.trim();
+  const ownerEmail = document.getElementById('ownerEmailInput').value.trim();
   const teamName = document.getElementById('teamNameInput').value.trim();
 
-  if (!ownerName || !teamName) {
-    alert('Preencha o Nome do Treinador e o Nome do Time.');
+  if (!ownerName || !teamName || !ownerEmail) {
+    alert('Preencha todos os campos: Nome, E-mail e Nome do Time.');
+    return;
+  }
+
+  // Validação simples de e-mail
+  if (!ownerEmail.includes('@') || !ownerEmail.includes('.')) {
+    alert('Por favor, insira um e-mail válido.');
     return;
   }
 
@@ -744,16 +761,19 @@ async function submitTeamToRanking() {
   btn.textContent = "Salvando...";
 
   try {
+    // .select() retorna o registro inserido, incluindo o UUID gerado
     const { data, error } = await supabase
       .from('teams')
       .insert([
         { 
-          owner_name: ownerName, 
+          owner_name: ownerName,
+          owner_email: ownerEmail,
           team_name: teamName, 
           formation: currentFormation, 
           lineup: playerIds 
         }
-      ]);
+      ])
+      .select();
 
     if (error) {
       if (error.code === '23505') {
@@ -765,23 +785,119 @@ async function submitTeamToRanking() {
     }
 
     closeSaveModal();
-    const toast = document.getElementById('successToast');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-    
-    // Redirecionar pro ranking
-    setTimeout(() => {
-      navigateTo('leaderboard');
-    }, 1500);
+
+    // Pega o ID do time recém-inserido
+    if (data && data.length > 0) {
+      lastSavedTeamId = data[0].id;
+      const shareUrl = buildTeamUrl(lastSavedTeamId);
+      
+      // Mostra o modal de sucesso com o link
+      document.getElementById('savedTeamTitle').textContent = teamName;
+      document.getElementById('teamShareLink').value = shareUrl;
+      document.getElementById('teamSavedModal').classList.add('active');
+    } else {
+      // Fallback: toast simples
+      const toast = document.getElementById('successToast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
 
   } catch (err) {
     console.error(err);
   } finally {
     btn.disabled = false;
-    btn.textContent = "Salvar Time";
+    btn.textContent = "Salvar e Gerar Link";
   }
 }
 
+function copyTeamShareLink() {
+  const input = document.getElementById('teamShareLink');
+  input.select();
+  document.execCommand('copy');
+  try {
+    navigator.clipboard.writeText(input.value);
+  } catch (e) { }
+
+  const toast = document.getElementById('copiedToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function openWhatsApp() {
+  const link = document.getElementById('teamShareLink').value;
+  const text = encodeURIComponent(`⚽ Veja minha escalação para a Copa 2026! 🇧🇷🏆\n\n${link}`);
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+// =====================================================
+// LOAD TEAM FROM DATABASE (Via URL ou clique no ranking)
+// =====================================================
+async function loadTeamFromDatabase(teamId) {
+  if (typeof supabase === 'undefined') return;
+
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select('*')
+      .eq('id', teamId)
+      .single();
+
+    if (error || !data) {
+      console.warn('Time não encontrado:', error);
+      return;
+    }
+
+    // Carregar a formação
+    if (data.formation && FORMATIONS[data.formation]) {
+      currentFormation = data.formation;
+      renderFormationButtons();
+    }
+
+    // Carregar a escalação
+    const playerIds = data.lineup || [];
+    lineup = new Array(11).fill(null);
+    usedPlayerIds = new Set();
+
+    playerIds.forEach((pid, i) => {
+      if (i < 11) {
+        const player = PLAYERS.find(p => p.id === pid);
+        if (player) {
+          lineup[i] = player;
+          usedPlayerIds.add(player.id);
+        }
+      }
+    });
+
+    selectedSlotIndex = -1;
+    renderField();
+    renderSidebarPlayers();
+    updateStrength();
+
+    // Mostra o banner de visualização
+    showViewingBanner(data.team_name, data.owner_name);
+
+    // Navega para o builder
+    navigateTo('builder');
+
+  } catch (err) {
+    console.error('Erro ao carregar time:', err);
+  }
+}
+
+function showViewingBanner(teamName, ownerName) {
+  const banner = document.getElementById('viewingBanner');
+  document.getElementById('viewingTeamName').textContent = teamName;
+  document.getElementById('viewingOwnerName').textContent = ownerName;
+  banner.style.display = 'flex';
+}
+
+function hideViewingBanner() {
+  document.getElementById('viewingBanner').style.display = 'none';
+}
+
+// =====================================================
+// LEADERBOARD (Ranking Global)
+// =====================================================
 async function loadLeaderboard() {
   if (typeof supabase === 'undefined') {
     document.getElementById('loadingRanking').textContent = "Supabase não configurado. Adicione suas credenciais no js/supabase.js";
@@ -806,24 +922,37 @@ async function loadLeaderboard() {
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      loading.textContent = "Nenhum time cadastrado ainda. Seja o primeiro!";
+      loading.innerHTML = `
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">🏟️</div>
+        <div>Nenhum time cadastrado ainda. <strong style="color: var(--primary);">Seja o primeiro!</strong></div>
+        <button class="btn btn-sm btn-primary" onclick="navigateTo('builder')" style="margin-top: 16px;">Monte seu Time</button>
+      `;
       return;
     }
 
     tbody.innerHTML = '';
     data.forEach((team, index) => {
       const pos = index + 1;
-      let posHtml = pos;
+      let posHtml = pos + 'º';
       if (pos === 1) posHtml = '🥇 1º';
       if (pos === 2) posHtml = '🥈 2º';
       if (pos === 3) posHtml = '🥉 3º';
 
       const tr = document.createElement('tr');
       tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      tr.style.cursor = 'pointer';
+      tr.style.transition = 'background 0.2s';
+      tr.onmouseenter = () => tr.style.background = 'rgba(255,255,255,0.03)';
+      tr.onmouseleave = () => tr.style.background = 'transparent';
+      tr.onclick = () => loadTeamFromDatabase(team.id);
+      tr.title = 'Clique para ver a escalação';
       
       tr.innerHTML = `
         <td style="padding: 16px 12px; font-weight: bold; color: ${pos <= 3 ? '#ffd700' : 'white'};">${posHtml}</td>
-        <td style="padding: 16px 12px; font-weight: bold;">${team.team_name} <br><span style="font-size:0.8rem;color:var(--text-muted);font-weight:normal;">${team.formation}</span></td>
+        <td style="padding: 16px 12px;">
+          <div style="font-weight: bold;">${team.team_name}</div>
+          <span style="font-size:0.8rem;color:var(--text-muted);font-weight:normal;">${team.formation}</span>
+        </td>
         <td style="padding: 16px 12px; color: var(--text-muted);">${team.owner_name}</td>
         <td style="padding: 16px 12px; font-weight: 900; color: var(--blue-accent); font-size: 1.1rem;">${parseFloat(team.total_score).toFixed(1)}</td>
       `;
