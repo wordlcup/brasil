@@ -206,7 +206,6 @@
       <button class="admin-tab active" onclick="switchAdminTab('scores')">Lançar Pontos</button>
       <button class="admin-tab" onclick="switchAdminTab('matches')">Gerenciar Jogos</button>
       <button class="admin-tab" onclick="switchAdminTab('teams')">Times Salvos</button>
-      <button class="admin-tab" onclick="switchAdminTab('api')">Integração API</button>
     </div>
 
     <!-- SEÇÃO 1: LANÇAR PONTOS -->
@@ -271,25 +270,6 @@
             <!-- Gerado via JS -->
           </tbody>
         </table>
-      </div>
-    </div>
-
-    <!-- SEÇÃO 4: INTEGRAÇÃO API RAPIDAPI -->
-    <div id="section-api" class="admin-section">
-      <div
-        style="background: var(--bg-glass-light); padding: 16px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-        <h3 style="margin-bottom: 8px; margin-top: 0;">Buscar Jogador na API Oficial</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Pesquise um jogador para descobrir
-          o ID oficial dele na RapidAPI.</p>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <input type="text" id="apiSearchName" placeholder="Ex: Gabriel Martinelli" class="score-input"
-            style="flex: 1; text-align: left;">
-          <button class="btn btn-primary" onclick="searchPlayerAPI()">Buscar na API</button>
-        </div>
-      </div>
-
-      <div id="apiResults" style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
-        <!-- Resultados da API aparecerão aqui -->
       </div>
     </div>
 

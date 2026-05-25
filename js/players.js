@@ -9,6 +9,7 @@ const PLAYERS = [
     id: 1, name: "Alisson", shortName: "Alisson", number: 1,
     position: "GK", positionLabel: "Goleiro", club: "Liverpool", age: 33,
     rating: 91, avatar: "AL",
+    apiId: null, // Ex: substitua null pelo número que achou na busca (ex: 7345)
     attributes: { PAC: 56, SHO: 17, PAS: 63, DRI: 65, DEF: 91, PHY: 87 },
     traits: ["Líder", "Seguro com os pés"]
   }, // Foto: assets/alisson.jpg
@@ -16,6 +17,7 @@ const PLAYERS = [
     id: 2, name: "Ederson", shortName: "Ederson", number: 12,
     position: "GK", positionLabel: "Goleiro", club: "Fenerbahçe", age: 31,
     rating: 89, avatar: "ED",
+    apiId: null, // Coloque o ID do Ederson aqui
     attributes: { PAC: 54, SHO: 14, PAS: 76, DRI: 68, DEF: 89, PHY: 84 },
     traits: ["Distribuição precisa"]
   }, // Foto: assets/ederson.jpg
@@ -23,6 +25,7 @@ const PLAYERS = [
     id: 3, name: "Weverton", shortName: "Weverton", number: 23,
     position: "GK", positionLabel: "Goleiro", club: "Grêmio", age: 37,
     rating: 83, avatar: "WV",
+    apiId: null, // Coloque o ID do Weverton aqui
     attributes: { PAC: 48, SHO: 12, PAS: 58, DRI: 55, DEF: 84, PHY: 82 },
     traits: ["Experiente", "Reflexos"]
   }, // Foto: assets/weverton.jpg
