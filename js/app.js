@@ -756,9 +756,15 @@ async function submitTeamToRanking() {
   const ownerName = document.getElementById('ownerNameInput').value.trim();
   const ownerEmail = document.getElementById('ownerEmailInput').value.trim();
   const teamName = document.getElementById('teamNameInput').value.trim();
+  const ownerPassword = document.getElementById('ownerPasswordInput').value.trim();
 
-  if (!ownerName || !teamName || !ownerEmail) {
-    alert('Preencha todos os campos: Nome, E-mail e Nome do Time.');
+  if (!ownerName || !teamName || !ownerEmail || !ownerPassword) {
+    alert('Preencha todos os campos: Nome, E-mail, Nome do Time e Senha.');
+    return;
+  }
+
+  if (ownerPassword.length < 4) {
+    alert('A senha deve ter pelo menos 4 caracteres.');
     return;
   }
 
@@ -790,7 +796,8 @@ async function submitTeamToRanking() {
           owner_email: ownerEmail,
           team_name: teamName, 
           formation: currentFormation, 
-          lineup: playerIds 
+          lineup: playerIds,
+          password: ownerPassword
         }
       ])
       .select();
@@ -1048,19 +1055,26 @@ document.getElementById('loginModal').addEventListener('click', (e) => {
 
 async function loginUser() {
   const email = document.getElementById('loginEmailInput').value.trim();
+  const password = document.getElementById('loginPasswordInput').value.trim();
+
   if (!email || !email.includes('@')) {
     alert("Por favor, insira um e-mail válido.");
     return;
   }
 
+  if (!password) {
+    alert("Por favor, insira sua senha.");
+    return;
+  }
+
   const btn = document.getElementById('loginBtn');
   btn.disabled = true;
-  btn.textContent = "Buscando...";
+  btn.textContent = "Verificando...";
 
   try {
     const { data, error } = await supabase
       .from('teams')
-      .select('id, owner_name')
+      .select('id, owner_name, password')
       .eq('owner_email', email)
       .order('created_at', { ascending: false })
       .limit(1);
@@ -1068,7 +1082,14 @@ async function loginUser() {
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      alert("Nenhum time encontrado para este e-mail.");
+      alert("❌ Nenhum time encontrado para este e-mail.");
+      return;
+    }
+
+    // Verifica a senha
+    const storedPassword = data[0].password;
+    if (!storedPassword || storedPassword !== password) {
+      alert("❌ Senha incorreta. Tente novamente.");
       return;
     }
 
@@ -1076,9 +1097,14 @@ async function loginUser() {
     loggedTeamId = teamId;
     loggedOwnerName = data[0].owner_name;
     updateLoginNavBar();
+
+    // Limpa o campo de senha por segurança
+    document.getElementById('loginPasswordInput').value = '';
+    document.getElementById('loginEmailInput').value = '';
+
     closeLoginModal();
     
-    alert(`Bem-vindo de volta, ${data[0].owner_name}! Carregando sua escalação e liberando Bolão...`);
+    alert(`✅ Bem-vindo de volta, ${data[0].owner_name}! Carregando sua escalação e liberando Bolão...`);
     
     // Reaproveitamos a função que carrega time do banco
     loadTeamFromDatabase(teamId);

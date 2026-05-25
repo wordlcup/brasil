@@ -258,6 +258,10 @@
           <label style="color: var(--text-muted); font-size: 0.85rem;">Nome do Time *</label>
           <input type="text" id="teamNameInput" placeholder="Ex: Galáticos FC" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
         </div>
+        <div>
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Definir Senha * <span style="color: var(--text-muted); font-weight: normal;">(para acessar e palpitar)</span></label>
+          <input type="password" id="ownerPasswordInput" placeholder="Defina uma senha segura" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+        </div>
       </div>
 
       <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 12px;">🔒 Seu e-mail não será exibido publicamente.</p>
@@ -298,11 +302,17 @@
     <div class="share-modal" style="max-width: 400px; text-align: center;">
       <div style="font-size: 3rem; margin-bottom: 8px;">🔑</div>
       <h3>Acessar Meu Time</h3>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Digite o e-mail que você usou para salvar sua escalação.</p>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Digite o e-mail e a senha que você usou para salvar sua escalação.</p>
       
-      <div style="text-align: left; margin-bottom: 24px;">
-        <label style="color: var(--text-muted); font-size: 0.85rem;">E-mail</label>
-        <input type="email" id="loginEmailInput" placeholder="voce@email.com" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+      <div style="text-align: left; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="color: var(--text-muted); font-size: 0.85rem;">E-mail</label>
+          <input type="email" id="loginEmailInput" placeholder="voce@email.com" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Senha</label>
+          <input type="password" id="loginPasswordInput" placeholder="Sua senha secreta" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+        </div>
       </div>
 
       <div style="display: flex; gap: 8px;">
