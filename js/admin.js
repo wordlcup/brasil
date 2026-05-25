@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 1. Checa a sessão ao carregar a página
   const { data: { session }, error } = await supabase.auth.getSession();
-  
+
   if (session) {
     showAdminPanel();
   } else {
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showAdminPanel() {
   document.getElementById('adminLoginContainer').style.display = 'none';
   document.getElementById('adminMainContainer').style.display = 'block';
-  
+
   // Carrega os dados só depois do login
   renderAdminPlayers();
   loadAdminTeams();
@@ -36,7 +36,7 @@ function showAdminPanel() {
 async function loginAdmin() {
   const email = document.getElementById('adminEmail').value.trim();
   const password = document.getElementById('adminPassword').value;
-  
+
   if (!email || !password) {
     alert("Preencha e-mail e senha.");
     return;
@@ -75,7 +75,7 @@ async function logoutAdmin() {
 function switchAdminTab(tab) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-  
+
   event.target.classList.add('active');
   document.getElementById('section-' + tab).classList.add('active');
 }
@@ -98,7 +98,7 @@ function renderAdminPlayers() {
   PLAYERS.forEach(player => {
     const item = document.createElement('div');
     item.className = 'admin-player-item';
-    
+
     item.innerHTML = `
       <div class="mini-avatar" style="border-radius: 50%; overflow: hidden; background: #333;">
         <img src="${getPhoto(player)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%2394a3b8%22%3E%3Cpath%20d%3D%22M12%2012c2.21%200%204-1.79%204-4s-1.79-4-4-4-4%201.79-4%204%201.79%204%204%204zm0%202c-2.67%200-8%201.34-8%204v2h16v-2c0-2.66-5.33-4-8-4z%22%2F%3E%3C%2Fsvg%3E'"/>
@@ -117,7 +117,7 @@ function renderAdminPlayers() {
 async function processRound() {
   const inputs = document.querySelectorAll('.score-input');
   const scores = {};
-  
+
   inputs.forEach(input => {
     const val = parseFloat(input.value);
     if (!isNaN(val) && val !== 0) {
@@ -137,18 +137,18 @@ async function processRound() {
   btn.disabled = true;
   btn.textContent = "Processando...";
   document.getElementById('adminLogs').innerHTML = "";
-  
+
   logMsg("Buscando times do Supabase...");
 
   try {
     // 1. Atualiza Pontuação dos JOGADORES (player_stats)
     logMsg("Atualizando banco de dados de jogadores (player_stats)...");
-    
+
     // Como Supabase não tem um "upsert de incremento" direto fácil via client JS, 
     // a gente puxa os stats atuais e soma.
     const { data: currentStats, error: statFetchError } = await supabase.from('player_stats').select('*');
     if (statFetchError) throw statFetchError;
-    
+
     const statsMap = {};
     if (currentStats) {
       currentStats.forEach(s => statsMap[s.player_id] = parseFloat(s.total_points || 0));
@@ -176,7 +176,7 @@ async function processRound() {
 
     for (const team of teams) {
       const lineup = team.lineup || [];
-      
+
       let roundScore = 0;
       lineup.forEach(playerId => {
         if (scores[playerId]) {
@@ -187,12 +187,12 @@ async function processRound() {
       if (roundScore > 0) {
         const newTotal = parseFloat(team.total_score || 0) + roundScore;
         logMsg(`Time '${team.team_name}' fez +${roundScore} pts. Total: ${newTotal}`);
-        
+
         const { error: updateError } = await supabase
           .from('teams')
           .update({ total_score: newTotal })
           .eq('id', team.id);
-          
+
         if (updateError) {
           logMsg(`Erro ao atualizar time '${team.team_name}': ${updateError.message}`);
         } else {
@@ -203,7 +203,7 @@ async function processRound() {
 
     logMsg(`Processamento concluído! ${updatedCount} times foram atualizados.`);
     alert(`Sucesso! Rodada processada e painéis atualizados.`);
-    
+
     inputs.forEach(i => i.value = '');
 
   } catch (error) {
@@ -219,7 +219,7 @@ async function processRound() {
 async function loadAdminTeams() {
   const tbody = document.getElementById('adminTeamsList');
   tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Carregando times...</td></tr>';
-  
+
   if (typeof supabase === 'undefined') return;
 
   try {
@@ -272,7 +272,7 @@ async function createMatch() {
       { team_a: teamA, team_b: teamB, status: 'open' }
     ]);
     if (error) throw error;
-    
+
     document.getElementById('newTeamA').value = '';
     document.getElementById('newTeamB').value = '';
     loadAdminMatches();
@@ -296,7 +296,7 @@ async function loadAdminMatches() {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    
+
     openList.innerHTML = '';
     closedList.innerHTML = '';
 
@@ -307,10 +307,10 @@ async function loadAdminMatches() {
 
     data.forEach(match => {
       const el = document.createElement('div');
-      el.style.background = 'rgba(255,255,255,0.03)';
+      el.style.background = 'var(--bg-glass-light)';
       el.style.padding = '12px 16px';
       el.style.borderRadius = '8px';
-      el.style.border = '1px solid rgba(255,255,255,0.05)';
+      el.style.border = '1px solid var(--border-subtle)';
       el.style.display = 'flex';
       el.style.flexDirection = 'column';
       el.style.gap = '12px';
@@ -318,11 +318,11 @@ async function loadAdminMatches() {
       // Renderiza palpites (se houver)
       let guessesHtml = '';
       if (match.guesses && match.guesses.length > 0) {
-        guessesHtml = `<div style="margin-top: 8px; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
+        guessesHtml = `<div style="margin-top: 8px; font-size: 0.85rem; border-top: 1px solid var(--border-subtle); padding-top: 8px;">
           <strong style="color: var(--text-muted);">Palpites Registrados (${match.guesses.length}):</strong>
           <ul style="list-style: none; padding: 0; margin: 4px 0 0 0; max-height: 150px; overflow-y: auto;">
             ${match.guesses.map(g => `
-              <li style="padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.05);">
+              <li style="padding: 4px 0; border-bottom: 1px dashed var(--border-subtle);">
                 <span style="color: var(--blue-accent); font-weight: bold;">[${g.guess_a} x ${g.guess_b}]</span> - 
                 ${g.teams?.owner_name} <span style="color: var(--text-muted); font-size: 0.75rem;">(${g.teams?.owner_email})</span>
                 ${match.status === 'closed' ? ` <span style="color: #10b981;">(+${g.points_earned} pts)</span>` : ''}
@@ -352,7 +352,7 @@ async function loadAdminMatches() {
         el.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="font-weight: bold; font-size: 1.1rem;">${match.team_a} <span style="color: var(--blue-accent); font-size: 1.3rem; margin: 0 12px;">${match.score_a} x ${match.score_b}</span> ${match.team_b}</div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">Encerrado</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-primary); padding: 4px 8px; border-radius: 4px;">Encerrado</div>
           </div>
           ${guessesHtml}
         `;
@@ -382,7 +382,7 @@ async function closeMatchAndCalculatePoints(matchId) {
       .from('matches')
       .update({ score_a: scoreA, score_b: scoreB, status: 'closed' })
       .eq('id', matchId);
-    
+
     if (matchError) throw matchError;
 
     // 2. Buscar palpites deste jogo
@@ -390,7 +390,7 @@ async function closeMatchAndCalculatePoints(matchId) {
       .from('guesses')
       .select('*')
       .eq('match_id', matchId);
-    
+
     if (guessesError) throw guessesError;
 
     let totalPointsAwarded = 0;
@@ -406,7 +406,7 @@ async function closeMatchAndCalculatePoints(matchId) {
         // Acertou o vencedor ou se foi empate
         const realDiff = scoreA - scoreB;
         const guessDiff = guess.guess_a - guess.guess_b;
-        
+
         // Se ambos forem > 0 (A venceu), ambos < 0 (B venceu), ou ambos == 0 (empate)
         if (Math.sign(realDiff) === Math.sign(guessDiff)) {
           points = 1;
@@ -416,7 +416,7 @@ async function closeMatchAndCalculatePoints(matchId) {
       if (points > 0) {
         totalPointsAwarded += points;
         teamPointsMap[guess.team_id] = (teamPointsMap[guess.team_id] || 0) + points;
-        
+
         // Salva pontos ganhos no próprio palpite para histórico
         await supabase
           .from('guesses')
@@ -433,7 +433,7 @@ async function closeMatchAndCalculatePoints(matchId) {
         .select('total_score')
         .eq('id', teamId)
         .single();
-        
+
       if (!teamFetchError && teamData) {
         const novoTotal = parseFloat(teamData.total_score || 0) + pts;
         await supabase
@@ -449,5 +449,67 @@ async function closeMatchAndCalculatePoints(matchId) {
   } catch (err) {
     console.error(err);
     alert('Erro ao calcular pontos: ' + err.message);
+  }
+}
+
+// =====================================================
+// INTEGRAÇÃO COM RAPIDAPI (Free API Live Football Data)
+// =====================================================
+
+async function searchPlayerAPI() {
+  const query = document.getElementById('apiSearchName').value.trim();
+  const resultsContainer = document.getElementById('apiResults');
+
+  if (!query) {
+    alert('Digite o nome de um jogador para buscar!');
+    return;
+  }
+
+  resultsContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Buscando na RapidAPI... ⏳</div>';
+
+  // Nota: O Host exato depende de qual API gratuita você assinou no RapidAPI.
+  // Baseado no seu JSON, este costuma ser o endpoint padrão de busca.
+  const url = `https://free-api-live-football-data.p.rapidapi.com/football-get-search-all?search=${encodeURIComponent(query)}`;
+
+  const options = {
+    method: 'GET',
+    headers: {
+      'X-RapidAPI-Key': 'e7860bf2f5msh300f8f2a345c9cbp178791jsn70ebfd950088',
+      'X-RapidAPI-Host': 'free-api-live-football-data.p.rapidapi.com'
+    }
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    if (data && data.response && data.response.suggestions) {
+      // Filtra apenas os resultados que são do tipo "player"
+      const players = data.response.suggestions.filter(item => item.type === 'player');
+
+      if (players.length === 0) {
+        resultsContainer.innerHTML = '<div style="color: #f87171; padding: 12px;">Nenhum jogador encontrado com esse nome.</div>';
+        return;
+      }
+
+      resultsContainer.innerHTML = players.map(p => `
+        <div style="background: var(--bg-glass-light); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: bold; font-size: 1.1rem; color: var(--text-primary);">${p.name}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Clube: ${p.teamName}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">ID Oficial da API</div>
+            <div style="font-family: monospace; font-size: 1.2rem; color: var(--primary); font-weight: bold;">${p.id}</div>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      resultsContainer.innerHTML = '<div style="color: #f87171; padding: 12px;">Resposta inesperada da API. Verifique o console.</div>';
+      console.log(data);
+    }
+  } catch (err) {
+    console.error('Erro na API:', err);
+    resultsContainer.innerHTML = `<div style="color: #f87171; padding: 12px;">Erro de conexão: ${err.message}</div>`;
   }
 }

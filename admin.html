@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,52 +11,66 @@
       max-width: 900px;
       margin: 40px auto;
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-subtle);
       border-radius: 16px;
       padding: 24px;
-      display: none; /* Oculto até o login */
+      display: none;
+      /* Oculto até o login */
+      position: relative;
+      z-index: 1;
     }
+
     .admin-login-container {
       max-width: 400px;
       margin: 100px auto;
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-subtle);
       border-radius: 16px;
       padding: 32px;
       text-align: center;
+      position: relative;
+      z-index: 1;
     }
+
     .admin-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 24px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-subtle);
       padding-bottom: 16px;
     }
+
     .admin-tabs {
       display: flex;
       gap: 12px;
       margin-bottom: 24px;
     }
+
     .admin-tab {
       padding: 12px 24px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border-color);
+      background: var(--bg-glass-light);
+      border: 1px solid var(--border-subtle);
       border-radius: 8px;
-      color: white;
+      color: var(--text-secondary);
       cursor: pointer;
       font-weight: bold;
     }
+
     .admin-tab.active {
       background: var(--primary);
       border-color: var(--primary);
+      color: #ffffff;
     }
+
     .admin-section {
       display: none;
     }
+
     .admin-section.active {
       display: block;
     }
+
     .admin-player-list {
       display: flex;
       flex-direction: column;
@@ -64,36 +79,52 @@
       overflow-y: auto;
       padding-right: 8px;
     }
+
     .admin-player-item {
       display: flex;
       align-items: center;
-      background: rgba(255,255,255,0.03);
+      background: var(--bg-glass-light);
       padding: 12px 16px;
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
     }
+
     .admin-player-item .mini-avatar {
-      width: 40px; height: 40px; margin-right: 16px;
+      width: 40px;
+      height: 40px;
+      margin-right: 16px;
     }
+
     .admin-player-item .info {
       flex: 1;
     }
+
     .admin-player-item .info .name {
       font-weight: bold;
     }
+
     .admin-player-item .info .pos {
-      font-size: 0.8rem; color: var(--text-muted);
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
+
     .score-input {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: white;
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
       padding: 8px 12px;
       border-radius: 8px;
       width: 100px;
       text-align: center;
       font-size: 1rem;
+      outline: none;
     }
+
+    .score-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+    }
+
     .process-btn {
       width: 100%;
       margin-top: 24px;
@@ -101,53 +132,65 @@
       padding: 16px;
       font-size: 1.1rem;
     }
+
     .admin-logs {
       margin-top: 24px;
-      background: rgba(0,0,0,0.3);
+      background: var(--bg-glass-light);
       padding: 16px;
       border-radius: 8px;
+      border: 1px solid var(--border-subtle);
       font-family: monospace;
       font-size: 0.9rem;
-      color: #10b981;
+      color: var(--primary);
       min-height: 100px;
       max-height: 200px;
       overflow-y: auto;
     }
+
     .teams-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 16px;
     }
-    .teams-table th, .teams-table td {
+
+    .teams-table th,
+    .teams-table td {
       padding: 12px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-subtle);
       text-align: left;
     }
+
     .teams-table th {
       color: var(--text-muted);
       font-size: 0.9rem;
     }
   </style>
 </head>
+
 <body>
-  
+
   <div class="admin-login-container" id="adminLoginContainer">
     <div style="font-size: 3rem; margin-bottom: 16px;">🔐</div>
     <h2>Acesso Restrito</h2>
-    <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">Área reservada para administradores do sistema.</p>
-    
+    <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">Área reservada para administradores do
+      sistema.</p>
+
     <div style="text-align: left; margin-bottom: 16px;">
       <label style="color: var(--text-muted); font-size: 0.85rem;">E-mail do Admin</label>
-      <input type="email" id="adminEmail" placeholder="admin@email.com" class="score-input" style="width: 100%; margin-top: 4px; box-sizing: border-box; text-align: left;">
-    </div>
-    
-    <div style="text-align: left; margin-bottom: 24px;">
-      <label style="color: var(--text-muted); font-size: 0.85rem;">Senha</label>
-      <input type="password" id="adminPassword" placeholder="••••••••" class="score-input" style="width: 100%; margin-top: 4px; box-sizing: border-box; text-align: left;">
+      <input type="email" id="adminEmail" placeholder="admin@email.com" class="score-input"
+        style="width: 100%; margin-top: 4px; box-sizing: border-box; text-align: left;">
     </div>
 
-    <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;" id="adminLoginBtn" onclick="loginAdmin()">Fazer Login</button>
-    <a href="index.html" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none;">← Voltar ao site</a>
+    <div style="text-align: left; margin-bottom: 24px;">
+      <label style="color: var(--text-muted); font-size: 0.85rem;">Senha</label>
+      <input type="password" id="adminPassword" placeholder="••••••••" class="score-input"
+        style="width: 100%; margin-top: 4px; box-sizing: border-box; text-align: left;">
+    </div>
+
+    <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;" id="adminLoginBtn"
+      onclick="loginAdmin()">Fazer Login</button>
+    <a href="index.html" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none;">← Voltar ao
+      site</a>
   </div>
 
   <div class="admin-container" id="adminMainContainer">
@@ -163,11 +206,13 @@
       <button class="admin-tab active" onclick="switchAdminTab('scores')">Lançar Pontos</button>
       <button class="admin-tab" onclick="switchAdminTab('matches')">Gerenciar Jogos</button>
       <button class="admin-tab" onclick="switchAdminTab('teams')">Times Salvos</button>
+      <button class="admin-tab" onclick="switchAdminTab('api')">Integração API</button>
     </div>
 
     <!-- SEÇÃO 1: LANÇAR PONTOS -->
     <div id="section-scores" class="admin-section active">
-      <p style="color: var(--text-muted); margin-bottom: 24px;">Insira a pontuação de cada jogador na rodada. Isso atualizará os times e o Dashboard de Craques.</p>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">Insira a pontuação de cada jogador na rodada. Isso
+        atualizará os times e o Dashboard de Craques.</p>
 
       <div class="admin-player-list" id="adminPlayerList">
         <!-- Gerado via JS -->
@@ -182,12 +227,15 @@
 
     <!-- SEÇÃO 2: GERENCIAR JOGOS -->
     <div id="section-matches" class="admin-section">
-      <div style="background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.1);">
+      <div
+        style="background: var(--bg-glass-light); padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid var(--border-subtle);">
         <h3 style="margin-bottom: 12px; margin-top: 0;">Criar Novo Jogo</h3>
         <div style="display: flex; gap: 12px; align-items: center;">
-          <input type="text" id="newTeamA" placeholder="Time A (ex: Brasil)" class="score-input" style="flex: 1; text-align: left;">
+          <input type="text" id="newTeamA" placeholder="Time A (ex: Brasil)" class="score-input"
+            style="flex: 1; text-align: left;">
           <span>X</span>
-          <input type="text" id="newTeamB" placeholder="Time B (ex: Croácia)" class="score-input" style="flex: 1; text-align: left;">
+          <input type="text" id="newTeamB" placeholder="Time B (ex: Croácia)" class="score-input"
+            style="flex: 1; text-align: left;">
           <button class="btn btn-primary" onclick="createMatch()">Salvar Jogo</button>
         </div>
       </div>
@@ -196,7 +244,7 @@
       <div id="adminMatchesList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
         <!-- Gerado via JS -->
       </div>
-      
+
       <h3 style="margin-bottom: 12px; margin-top: 0; color: var(--text-muted);">Jogos Encerrados</h3>
       <div id="adminClosedMatchesList" style="display: flex; flex-direction: column; gap: 12px; opacity: 0.7;">
         <!-- Gerado via JS -->
@@ -205,8 +253,9 @@
 
     <!-- SEÇÃO 3: TIMES SALVOS -->
     <div id="section-teams" class="admin-section">
-      <p style="color: var(--text-muted); margin-bottom: 16px;">Lista de todas as formações cadastradas pelos usuários.</p>
-      
+      <p style="color: var(--text-muted); margin-bottom: 16px;">Lista de todas as formações cadastradas pelos usuários.
+      </p>
+
       <div style="overflow-x: auto;">
         <table class="teams-table">
           <thead>
@@ -225,6 +274,25 @@
       </div>
     </div>
 
+    <!-- SEÇÃO 4: INTEGRAÇÃO API RAPIDAPI -->
+    <div id="section-api" class="admin-section">
+      <div
+        style="background: var(--bg-glass-light); padding: 16px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <h3 style="margin-bottom: 8px; margin-top: 0;">Buscar Jogador na API Oficial</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Pesquise um jogador para descobrir
+          o ID oficial dele na RapidAPI.</p>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <input type="text" id="apiSearchName" placeholder="Ex: Gabriel Martinelli" class="score-input"
+            style="flex: 1; text-align: left;">
+          <button class="btn btn-primary" onclick="searchPlayerAPI()">Buscar na API</button>
+        </div>
+      </div>
+
+      <div id="apiResults" style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <!-- Resultados da API aparecerão aqui -->
+      </div>
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -232,4 +300,5 @@
   <script src="js/supabase.js"></script>
   <script src="js/admin.js"></script>
 </body>
+
 </html>
