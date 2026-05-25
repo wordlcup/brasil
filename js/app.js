@@ -1148,8 +1148,7 @@ async function loadTopPlayers() {
       const player = PLAYERS.find(p => p.id === stat.player_id);
       if (!player) return;
 
-      const fileName = player.shortName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-      const photoSrc = `assets/photos/${fileName}.jpg`;
+      const photoSrc = getPlayerPhoto(player);
 
       const posHtml = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}º`;
       const points = parseFloat(stat.total_points).toFixed(1);

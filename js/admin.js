@@ -92,7 +92,7 @@ function renderAdminPlayers() {
 
   const getPhoto = (player) => {
     const name = player.shortName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-    return `assets/photos/${name}.jpg`;
+    return `assets/${name}.jpg`;
   };
 
   PLAYERS.forEach(player => {
