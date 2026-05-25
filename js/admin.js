@@ -2,11 +2,74 @@
 // ADMIN LOGIC
 // =====================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderAdminPlayers();
+document.addEventListener('DOMContentLoaded', async () => {
+  if (typeof supabase === 'undefined') {
+    alert("Supabase não configurado.");
+    return;
+  }
+
+  // 1. Checa a sessão ao carregar a página
+  const { data: { session }, error } = await supabase.auth.getSession();
+  
+  if (session) {
+    showAdminPanel();
+  } else {
+    // Escuta mudanças de auth para lidar com o login
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session) showAdminPanel();
+    });
+  }
+
   document.getElementById('processRoundBtn').addEventListener('click', processRound);
-  loadAdminTeams();
 });
+
+function showAdminPanel() {
+  document.getElementById('adminLoginContainer').style.display = 'none';
+  document.getElementById('adminMainContainer').style.display = 'block';
+  
+  // Carrega os dados só depois do login
+  renderAdminPlayers();
+  loadAdminTeams();
+}
+
+async function loginAdmin() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  
+  if (!email || !password) {
+    alert("Preencha e-mail e senha.");
+    return;
+  }
+
+  const btn = document.getElementById('adminLoginBtn');
+  btn.disabled = true;
+  btn.textContent = "Validando...";
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      alert("Erro ao fazer login: " + error.message);
+    }
+    // Se der sucesso, o evento onAuthStateChange vai mostrar o painel.
+  } catch (err) {
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Fazer Login";
+  }
+}
+
+async function logoutAdmin() {
+  await supabase.auth.signOut();
+  document.getElementById('adminLoginContainer').style.display = 'block';
+  document.getElementById('adminMainContainer').style.display = 'none';
+  document.getElementById('adminEmail').value = '';
+  document.getElementById('adminPassword').value = '';
+}
 
 function switchAdminTab(tab) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));

@@ -13,6 +13,16 @@
       border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 24px;
+      display: none; /* Oculto até o login */
+    }
+    .admin-login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
     }
     .admin-header {
       display: flex;
@@ -121,10 +131,32 @@
 </head>
 <body>
   
-  <div class="admin-container">
+  <div class="admin-login-container" id="adminLoginContainer">
+    <div style="font-size: 3rem; margin-bottom: 16px;">🔐</div>
+    <h2>Acesso Restrito</h2>
+    <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">Área reservada para administradores do sistema.</p>
+    
+    <div style="text-align: left; margin-bottom: 16px;">
+      <label style="color: var(--text-muted); font-size: 0.85rem;">E-mail do Admin</label>
+      <input type="email" id="adminEmail" placeholder="admin@email.com" class="score-input" style="width: 100%; margin-top: 4px; box-sizing: border-box; text-align: left;">
+    </div>
+    
+    <div style="text-align: left; margin-bottom: 24px;">
+      <label style="color: var(--text-muted); font-size: 0.85rem;">Senha</label>
+      <input type="password" id="adminPassword" placeholder="••••••••" class="score-input" style="width: 100%; margin-top: 4px; box-sizing: border-box; text-align: left;">
+    </div>
+
+    <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;" id="adminLoginBtn" onclick="loginAdmin()">Fazer Login</button>
+    <a href="index.html" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none;">← Voltar ao site</a>
+  </div>
+
+  <div class="admin-container" id="adminMainContainer">
     <div class="admin-header">
       <h2>Painel de Controle (Admin)</h2>
-      <a href="index.html" style="color: var(--text-muted); text-decoration: none;">Voltar ao Site</a>
+      <div>
+        <button class="btn btn-sm btn-secondary" onclick="logoutAdmin()" style="margin-right: 12px;">Sair</button>
+        <a href="index.html" style="color: var(--text-muted); text-decoration: none;">Voltar ao Site</a>
+      </div>
     </div>
 
     <div class="admin-tabs">
