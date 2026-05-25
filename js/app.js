@@ -667,8 +667,8 @@ document.getElementById('shareModal').addEventListener('click', (e) => {
 function init() {
   renderPlayerCards();
   renderFormationButtons();
-  renderField();
-  updateStrength();
+  // Carrega Top Players
+  loadTopPlayers();
 
   // Checa se tem um time para carregar via URL (?time=UUID)
   const urlParams = new URLSearchParams(window.location.search);
@@ -975,5 +975,128 @@ async function loadLeaderboard() {
   } catch (err) {
     console.error(err);
     loading.textContent = "Erro ao carregar o ranking.";
+  }
+}
+
+// =====================================================
+// LOGIN E DASHBOARD DE CRAQUES
+// =====================================================
+
+function openLoginModal() {
+  document.getElementById('loginModal').classList.add('active');
+}
+
+function closeLoginModal() {
+  document.getElementById('loginModal').classList.remove('active');
+}
+
+document.getElementById('loginModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeLoginModal();
+});
+
+async function loginUser() {
+  const email = document.getElementById('loginEmailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    alert("Por favor, insira um e-mail válido.");
+    return;
+  }
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = "Buscando...";
+
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select('id, owner_name')
+      .eq('owner_email', email)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      alert("Nenhum time encontrado para este e-mail.");
+      return;
+    }
+
+    const teamId = data[0].id;
+    closeLoginModal();
+    
+    alert(`Bem-vindo de volta, ${data[0].owner_name}! Carregando sua escalação...`);
+    
+    // Reaproveitamos a função que carrega time do banco
+    loadTeamFromDatabase(teamId);
+    
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao fazer login.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Entrar";
+  }
+}
+
+async function loadTopPlayers() {
+  const container = document.getElementById('topPlayersContainer');
+  if (typeof supabase === 'undefined') {
+    container.innerHTML = '<div style="color:var(--text-muted);">Supabase não configurado.</div>';
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('player_stats')
+      .select('*')
+      .order('total_points', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="color:var(--text-muted);width:100%;text-align:center;">Nenhum jogador pontuou ainda.</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    
+    data.forEach((stat, index) => {
+      const player = PLAYERS.find(p => p.id === stat.player_id);
+      if (!player) return;
+
+      const fileName = player.shortName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+      const photoSrc = `assets/photos/${fileName}.jpg`;
+      
+      const posHtml = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}º`;
+      const points = parseFloat(stat.total_points).toFixed(1);
+
+      const card = document.createElement('div');
+      card.style.background = index < 3 ? 'linear-gradient(180deg, rgba(255,215,0,0.1) 0%, rgba(0,0,0,0.4) 100%)' : 'rgba(0,0,0,0.3)';
+      card.style.border = index < 3 ? '1px solid rgba(255,215,0,0.3)' : '1px solid rgba(255,255,255,0.05)';
+      card.style.borderRadius = '12px';
+      card.style.padding = '16px';
+      card.style.minWidth = '140px';
+      card.style.textAlign = 'center';
+      card.style.position = 'relative';
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      card.style.alignItems = 'center';
+
+      card.innerHTML = `
+        <div style="position: absolute; top: -10px; left: -10px; font-size: 1.5rem; background: var(--bg-dark); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.5);">${posHtml}</div>
+        <div style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 2px solid ${index < 3 ? '#ffd700' : 'var(--border-color)'}; margin-bottom: 12px; background: #333;">
+          <img src="${photoSrc}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%2394a3b8%22%3E%3Cpath%20d%3D%22M12%2012c2.21%200%204-1.79%204-4s-1.79-4-4-4-4%201.79-4%204%201.79%204%204%204zm0%202c-2.67%200-8%201.34-8%204v2h16v-2c0-2.66-5.33-4-8-4z%22%2F%3E%3C%2Fsvg%3E'"/>
+        </div>
+        <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 4px;">${player.shortName}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">${player.positionLabel} · ${player.club}</div>
+        <div style="font-size: 1.4rem; font-weight: 900; color: var(--blue-accent);">${points} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">pts</span></div>
+      `;
+      
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = '<div style="color:red;">Erro ao carregar craques.</div>';
   }
 }

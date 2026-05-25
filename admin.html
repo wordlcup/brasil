@@ -6,9 +6,8 @@
   <title>Admin Cartola Copa 2026</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    /* Estilos específicos para o Admin para não sobrecarregar o style.css */
     .admin-container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 40px auto;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -22,6 +21,30 @@
       margin-bottom: 24px;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 16px;
+    }
+    .admin-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .admin-tab {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .admin-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .admin-section {
+      display: none;
+    }
+    .admin-section.active {
+      display: block;
     }
     .admin-player-list {
       display: flex;
@@ -80,6 +103,20 @@
       max-height: 200px;
       overflow-y: auto;
     }
+    .teams-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    .teams-table th, .teams-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      text-align: left;
+    }
+    .teams-table th {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -90,17 +127,48 @@
       <a href="index.html" style="color: var(--text-muted); text-decoration: none;">Voltar ao Site</a>
     </div>
 
-    <p style="color: var(--text-muted); margin-bottom: 24px;">Insira a pontuação feita por cada jogador na rodada atual. Deixe em branco os que não jogaram ou fizeram 0 pontos.</p>
-
-    <div class="admin-player-list" id="adminPlayerList">
-      <!-- Gerado via JS -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('scores')">Lançar Pontos</button>
+      <button class="admin-tab" onclick="switchAdminTab('teams')">Times Salvos</button>
     </div>
 
-    <button class="btn btn-primary process-btn" id="processRoundBtn">Processar Pontuações (Somar ao Ranking)</button>
+    <!-- SEÇÃO 1: LANÇAR PONTOS -->
+    <div id="section-scores" class="admin-section active">
+      <p style="color: var(--text-muted); margin-bottom: 24px;">Insira a pontuação de cada jogador na rodada. Isso atualizará os times e o Dashboard de Craques.</p>
 
-    <div class="admin-logs" id="adminLogs">
-      Pronto para processar a rodada...
+      <div class="admin-player-list" id="adminPlayerList">
+        <!-- Gerado via JS -->
+      </div>
+
+      <button class="btn btn-primary process-btn" id="processRoundBtn">Processar Pontuações da Rodada</button>
+
+      <div class="admin-logs" id="adminLogs">
+        Pronto para processar a rodada...
+      </div>
     </div>
+
+    <!-- SEÇÃO 2: TIMES SALVOS -->
+    <div id="section-teams" class="admin-section">
+      <p style="color: var(--text-muted); margin-bottom: 16px;">Lista de todas as formações cadastradas pelos usuários.</p>
+      
+      <div style="overflow-x: auto;">
+        <table class="teams-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Treinador</th>
+              <th>E-mail</th>
+              <th>Formação</th>
+              <th>Pontos</th>
+            </tr>
+          </thead>
+          <tbody id="adminTeamsList">
+            <!-- Gerado via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
