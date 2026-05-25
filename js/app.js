@@ -1,0 +1,840 @@
+// =====================================================
+// COPA 2026 BRASIL — APP PRINCIPAL
+// =====================================================
+
+// ——— STATE ———
+let currentSection = 'home';
+let currentFormation = '4-3-3';
+let selectedSlotIndex = -1;
+let lineup = new Array(11).fill(null);
+let usedPlayerIds = new Set();
+
+// Placeholder para jogadores sem foto
+const PLACEHOLDER_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%2394a3b8%22%3E%3Cpath%20d%3D%22M12%2012c2.21%200%204-1.79%204-4s-1.79-4-4-4-4%201.79-4%204%201.79%204%204%204zm0%202c-2.67%200-8%201.34-8%204v2h16v-2c0-2.66-5.33-4-8-4z%22%2F%3E%3C%2Fsvg%3E";
+window.PLACEHOLDER_IMG = PLACEHOLDER_IMG;
+
+function getPlayerPhoto(player) {
+  if (!player) return '';
+  // Formata o nome para usar como arquivo de imagem (ex: "Alisson" -> "alisson.jpg")
+  const fileName = player.shortName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  return `assets/${fileName}.jpg`;
+}
+
+// =====================================================
+// NAVIGATION
+// =====================================================
+function navigateTo(section) {
+  currentSection = section;
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const link = document.querySelector(`.nav-links a[data-section="${section}"]`);
+  if (link) link.classList.add('active');
+
+  if (section === 'leaderboard') {
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('squad').style.display = 'none';
+    document.getElementById('builder').style.display = 'none';
+    document.getElementById('leaderboard').style.display = 'block';
+    window.scrollTo(0,0);
+    loadLeaderboard();
+  } else {
+    document.getElementById('home').style.display = 'flex';
+    document.getElementById('squad').style.display = 'block';
+    document.getElementById('builder').style.display = 'block';
+    document.getElementById('leaderboard').style.display = 'none';
+    
+    const el = document.getElementById(section);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  document.getElementById('navLinks').classList.remove('open');
+}
+
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// =====================================================
+// SQUAD SECTION — PLAYER CARDS
+// =====================================================
+function renderPlayerCards(filter = 'all') {
+  const grid = document.getElementById('playersGrid');
+  grid.innerHTML = '';
+
+  const filtered = PLAYERS.filter(p => {
+    if (filter === 'all') return true;
+    if (filter === 'GK') return p.position === 'GK';
+    if (filter === 'DEF') return ['RB', 'CB', 'LB'].includes(p.position);
+    if (filter === 'MID') return ['CDM', 'CM', 'CAM'].includes(p.position);
+    if (filter === 'ATK') return ['RW', 'LW', 'ST'].includes(p.position);
+    return true;
+  });
+
+  filtered.forEach((player, i) => {
+    const tier = player.rating >= 90 ? 'elite' : player.rating >= 85 ? 'gold' : player.rating >= 80 ? 'silver' : 'bronze';
+    const a = player.attributes;
+
+    const card = document.createElement('div');
+    card.className = 'player-card animate-in';
+    card.dataset.tier = tier;
+    card.style.animationDelay = `${i * 0.05}s`;
+
+    card.innerHTML = `
+      <div class="player-card-header">
+        <div class="player-rating-badge">
+          <div class="rating-num">${player.rating}</div>
+          <div class="position-tag">${player.position}</div>
+        </div>
+        <div class="player-avatar">
+          <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" alt="${player.name}" />
+        </div>
+        <div class="player-info">
+          <div class="name">${player.shortName}</div>
+          <div class="club">${player.club}</div>
+          <div class="traits">
+            ${player.traits.slice(0, 2).map(t => `<span class="trait-tag">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div class="player-number">${player.number}</div>
+      </div>
+      <div class="player-card-stats">
+        <div class="stat-item">
+          <div class="stat-val ${getStatColor(a.PAC)}">${a.PAC}</div>
+          <div class="stat-label">PAC</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val ${getStatColor(a.SHO)}">${a.SHO}</div>
+          <div class="stat-label">SHO</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val ${getStatColor(a.PAS)}">${a.PAS}</div>
+          <div class="stat-label">PAS</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val ${getStatColor(a.DRI)}">${a.DRI}</div>
+          <div class="stat-label">DRI</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val ${getStatColor(a.DEF)}">${a.DEF}</div>
+          <div class="stat-label">DEF</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val ${getStatColor(a.PHY)}">${a.PHY}</div>
+          <div class="stat-label">PHY</div>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+function getStatColor(val) {
+  if (val >= 85) return 'high';
+  if (val >= 65) return 'mid';
+  return 'low';
+}
+
+function filterPlayers(filter) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.filter-btn[data-filter="${filter}"]`).classList.add('active');
+  renderPlayerCards(filter);
+}
+
+// =====================================================
+// DRAG AND DROP LOGIC
+// =====================================================
+let draggedPlayerId = null;
+let draggedFromSlot = null;
+
+function dragStartFromSidebar(e, playerId) {
+  draggedPlayerId = playerId;
+  draggedFromSlot = null;
+  e.dataTransfer.setData('text/plain', playerId);
+  e.dataTransfer.effectAllowed = 'copy';
+}
+
+function dragStartFromSlot(e, slotIndex, playerId) {
+  draggedPlayerId = playerId;
+  draggedFromSlot = slotIndex;
+  e.dataTransfer.setData('text/plain', playerId);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function allowDrop(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copyMove';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function dropSlot(e, targetSlotIndex) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+
+  if (draggedPlayerId === null) return;
+  const player = PLAYERS.find(p => p.id === draggedPlayerId);
+  if (!player) return;
+
+  if (draggedFromSlot !== null) {
+    // Swap players between slots
+    const targetExistingPlayer = lineup[targetSlotIndex];
+    lineup[targetSlotIndex] = player;
+    lineup[draggedFromSlot] = targetExistingPlayer;
+  } else {
+    // Drop from sidebar
+    // Remove player from any other slot they might be in
+    const existingIndex = lineup.findIndex(p => p && p.id === player.id);
+    if (existingIndex !== -1) {
+      lineup[existingIndex] = null;
+    }
+    lineup[targetSlotIndex] = player;
+    usedPlayerIds.add(player.id);
+  }
+
+  draggedPlayerId = null;
+  draggedFromSlot = null;
+
+  // Select the newly dropped slot
+  selectedSlotIndex = targetSlotIndex;
+
+  renderField();
+  renderSidebarPlayers();
+  updateStrength();
+}
+
+// =====================================================
+// SVG FIELD RENDERING
+// =====================================================
+function renderField() {
+  const svg = document.getElementById('fieldSvg');
+  const W = 400, H = 560;
+
+  let svgContent = `
+    <defs>
+      <linearGradient id="fieldGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a7a3a"/>
+        <stop offset="25%" stop-color="#228b42"/>
+        <stop offset="50%" stop-color="#1e7d3c"/>
+        <stop offset="75%" stop-color="#22924a"/>
+        <stop offset="100%" stop-color="#1a7a3a"/>
+      </linearGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <radialGradient id="slotGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(0,200,83,0.3)"/>
+        <stop offset="100%" stop-color="rgba(0,200,83,0)"/>
+      </radialGradient>
+      <radialGradient id="slotGradFilled" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(0,200,83,0.5)"/>
+        <stop offset="100%" stop-color="rgba(0,100,40,0.3)"/>
+      </radialGradient>
+      <radialGradient id="slotGradSelected" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(255,215,0,0.5)"/>
+        <stop offset="100%" stop-color="rgba(255,215,0,0.1)"/>
+      </radialGradient>
+    </defs>
+
+    <rect x="0" y="0" width="${W}" height="${H}" rx="16" fill="url(#fieldGrad)"/>
+
+    ${Array.from({ length: 10 }, (_, i) => i % 2 === 0
+    ? `<rect x="20" y="${20 + i * 52}" width="${W - 40}" height="52" fill="rgba(255,255,255,0.03)" rx="0"/>`
+    : ''
+  ).join('')}
+
+    <rect x="20" y="20" width="${W - 40}" height="${H - 40}" rx="4" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+    <line x1="20" y1="${H / 2}" x2="${W - 20}" y2="${H / 2}" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+    <circle cx="${W / 2}" cy="${H / 2}" r="60" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+    <circle cx="${W / 2}" cy="${H / 2}" r="4" fill="rgba(255,255,255,0.8)"/>
+
+    <rect x="${W / 2 - 80}" y="20" width="160" height="70" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+    <rect x="${W / 2 - 40}" y="20" width="80" height="30" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+    <circle cx="${W / 2}" cy="60" r="3" fill="rgba(255,255,255,0.6)"/>
+    <path d="M ${W / 2 - 40} 90 Q ${W / 2} 110 ${W / 2 + 40} 90" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+
+    <rect x="${W / 2 - 80}" y="${H - 90}" width="160" height="70" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+    <rect x="${W / 2 - 40}" y="${H - 50}" width="80" height="30" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+    <circle cx="${W / 2}" cy="${H - 60}" r="3" fill="rgba(255,255,255,0.6)"/>
+    <path d="M ${W / 2 - 40} ${H - 90} Q ${W / 2} ${H - 110} ${W / 2 + 40} ${H - 90}" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+
+    <path d="M 20 30 Q 30 20 40 20" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    <path d="M ${W - 40} 20 Q ${W - 30} 20 ${W - 20} 30" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    <path d="M 20 ${H - 30} Q 30 ${H - 20} 40 ${H - 20}" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    <path d="M ${W - 40} ${H - 20} Q ${W - 30} ${H - 20} ${W - 20} ${H - 30}" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+  `;
+
+  const formation = FORMATIONS[currentFormation];
+  formation.slots.forEach((slot, i) => {
+    const cx = (slot.x / 100) * W;
+    const cy = (slot.y / 100) * H;
+    const player = lineup[i];
+    const isSelected = selectedSlotIndex === i;
+    const isFilled = !!player;
+
+    let fillGrad = 'url(#slotGrad)';
+    let strokeColor = 'rgba(255,255,255,0.5)';
+    let strokeWidth = 2;
+
+    if (isSelected) {
+      fillGrad = 'url(#slotGradSelected)';
+      strokeColor = '#ffd700';
+      strokeWidth = 3;
+    } else if (isFilled) {
+      fillGrad = 'url(#slotGradFilled)';
+      strokeColor = '#00c853';
+      strokeWidth = 2.5;
+    }
+
+    svgContent += `
+      <g class="field-slot ${isSelected ? 'selected' : ''} ${isFilled ? 'filled' : ''}"
+         data-index="${i}" 
+         onclick="selectSlot(${i})"
+         ondragover="allowDrop(event)"
+         ondragleave="dragLeave(event)"
+         ondrop="dropSlot(event, ${i})"
+         ${isFilled ? `draggable="true" ondragstart="dragStartFromSlot(event, ${i}, ${player.id})"` : ''}
+         style="cursor: ${isFilled ? 'grab' : 'pointer'};">
+         
+        <circle cx="${cx}" cy="${cy}" r="28" fill="${fillGrad}" stroke="${strokeColor}" stroke-width="${strokeWidth}" class="slot-ring"
+          ${isSelected ? 'filter="url(#glow)"' : ''}/>
+          
+        ${isFilled ? `
+          <foreignObject x="${cx - 20}" y="${cy - 24}" width="40" height="40" style="border-radius: 50%; overflow: hidden; pointer-events: none;">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; border-radius: 50%; background: #111827; display: flex; align-items: center; justify-content: center;">
+              <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" style="width: 100%; height: 100%; object-fit: cover;" alt=""/>
+            </div>
+          </foreignObject>
+          <text x="${cx}" y="${cy + 24}" class="slot-name" font-size="9" fill="#fff" font-weight="bold" filter="drop-shadow(1px 1px 2px rgba(0,0,0,0.8))">${player.shortName}</text>
+          <text x="${cx}" y="${cy - 16}" class="slot-rating" font-size="10" font-weight="900" fill="#ffd700" filter="drop-shadow(1px 1px 2px rgba(0,0,0,0.8))">${player.rating}</text>
+        ` : `
+          <text x="${cx}" y="${cy + 1}" class="slot-label" font-size="11" fill="rgba(255,255,255,0.7)">${slot.label}</text>
+          <text x="${cx}" y="${cy + 15}" class="slot-name" font-size="7" fill="rgba(255,255,255,0.4)">${slot.pos}</text>
+        `}
+      </g>
+    `;
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+// =====================================================
+// FORMATION BUTTONS
+// =====================================================
+function renderFormationButtons() {
+  const container = document.getElementById('formationSelect');
+  container.innerHTML = '';
+
+  Object.keys(FORMATIONS).forEach(key => {
+    const btn = document.createElement('button');
+    btn.className = `formation-btn ${key === currentFormation ? 'active' : ''}`;
+    btn.textContent = key;
+    btn.onclick = () => changeFormation(key);
+    container.appendChild(btn);
+  });
+}
+
+function changeFormation(key) {
+  currentFormation = key;
+  lineup = new Array(11).fill(null);
+  usedPlayerIds = new Set();
+  selectedSlotIndex = -1;
+  renderFormationButtons();
+  renderField();
+  renderSidebarPlayers();
+  updateStrength();
+}
+
+// =====================================================
+// SLOT SELECTION & SIDEBAR PLAYER LIST
+// =====================================================
+function selectSlot(index) {
+  selectedSlotIndex = index;
+  renderField();
+  renderSidebarPlayers();
+}
+
+function renderSidebarPlayers() {
+  const container = document.getElementById('sidebarPlayers');
+  const title = document.getElementById('sidebarTitle');
+  const subtitle = document.getElementById('sidebarSubtitle');
+  const searchInput = document.getElementById('searchPlayer');
+
+  if (selectedSlotIndex < 0) {
+    title.textContent = 'Selecione uma posição';
+    subtitle.textContent = 'Clique em um slot no campo para começar';
+    container.innerHTML = `
+      <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">👆</div>
+        Arraste os jogadores para o campo ou selecione uma posição
+      </div>
+    `;
+
+    // Mostra todos os jogadores permitindo drag and drop genérico
+    renderAllPlayersForDrag(container, searchInput.value.toLowerCase());
+    return;
+  }
+
+  const formation = FORMATIONS[currentFormation];
+  const slot = formation.slots[selectedSlotIndex];
+  const compatiblePositions = POSITION_GROUPS[slot.pos] || [slot.pos];
+
+  title.textContent = `Posição: ${slot.label} (${slot.pos})`;
+  subtitle.textContent = `Posições compatíveis: ${compatiblePositions.join(', ')}`;
+
+  const searchTerm = searchInput.value.toLowerCase();
+
+  const sorted = [...PLAYERS].sort((a, b) => {
+    const aCompat = compatiblePositions.includes(a.position) ? 1 : 0;
+    const bCompat = compatiblePositions.includes(b.position) ? 1 : 0;
+    if (aCompat !== bCompat) return bCompat - aCompat;
+    return b.rating - a.rating;
+  });
+
+  const filtered = sorted.filter(p => {
+    if (searchTerm && !p.name.toLowerCase().includes(searchTerm) && !p.shortName.toLowerCase().includes(searchTerm)) return false;
+    return true;
+  });
+
+  container.innerHTML = '';
+
+  if (lineup[selectedSlotIndex]) {
+    const removeItem = document.createElement('div');
+    removeItem.className = 'sidebar-player-item';
+    removeItem.style.borderColor = '#f87171';
+    removeItem.style.background = 'rgba(248, 113, 113, 0.08)';
+    removeItem.innerHTML = `
+      <div class="mini-avatar" style="background: linear-gradient(135deg, #f87171, #dc2626); color: white;">✕</div>
+      <div class="item-info">
+        <div class="item-name" style="color: #f87171;">Remover jogador</div>
+        <div class="item-detail">${lineup[selectedSlotIndex].shortName}</div>
+      </div>
+    `;
+    removeItem.onclick = () => removePlayerFromSlot(selectedSlotIndex);
+    container.appendChild(removeItem);
+  }
+
+  filtered.forEach(player => {
+    const isUsed = usedPlayerIds.has(player.id) && (!lineup[selectedSlotIndex] || lineup[selectedSlotIndex].id !== player.id);
+    const isCompatible = compatiblePositions.includes(player.position);
+
+    const item = document.createElement('div');
+    item.className = `sidebar-player-item ${isUsed ? 'disabled' : ''}`;
+
+    if (!isCompatible && !isUsed) {
+      item.style.opacity = '0.55';
+    }
+
+    item.innerHTML = `
+      <div class="mini-avatar">
+        <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" alt="${player.name}"/>
+      </div>
+      <div class="item-info">
+        <div class="item-name">${player.shortName}</div>
+        <div class="item-detail">${player.positionLabel} · ${player.club}</div>
+      </div>
+      <div class="item-rating">${player.rating}</div>
+    `;
+
+    if (!isUsed) {
+      item.onclick = () => assignPlayer(selectedSlotIndex, player);
+      item.draggable = true;
+      item.ondragstart = (e) => dragStartFromSidebar(e, player.id);
+    }
+
+    container.appendChild(item);
+  });
+}
+
+function renderAllPlayersForDrag(container, searchTerm) {
+  const sorted = [...PLAYERS].sort((a, b) => b.rating - a.rating);
+  const filtered = sorted.filter(p => {
+    if (searchTerm && !p.name.toLowerCase().includes(searchTerm) && !p.shortName.toLowerCase().includes(searchTerm)) return false;
+    return true;
+  });
+
+  filtered.forEach(player => {
+    const isUsed = usedPlayerIds.has(player.id);
+    const item = document.createElement('div');
+    item.className = `sidebar-player-item ${isUsed ? 'disabled' : ''}`;
+
+    item.innerHTML = `
+      <div class="mini-avatar">
+        <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" alt="${player.name}"/>
+      </div>
+      <div class="item-info">
+        <div class="item-name">${player.shortName}</div>
+        <div class="item-detail">${player.positionLabel} · ${player.club}</div>
+      </div>
+      <div class="item-rating">${player.rating}</div>
+    `;
+
+    if (!isUsed) {
+      item.draggable = true;
+      item.ondragstart = (e) => dragStartFromSidebar(e, player.id);
+      // Se clicar quando não tem slot selecionado, alerta o usuário
+      item.onclick = () => {
+        alert("Arraste o jogador para o campo ou selecione um espaço primeiro.");
+      };
+    }
+
+    container.appendChild(item);
+  });
+}
+
+function filterSidebarPlayers() {
+  renderSidebarPlayers();
+}
+
+function assignPlayer(slotIndex, player) {
+  if (lineup[slotIndex]) {
+    usedPlayerIds.delete(lineup[slotIndex].id);
+  }
+
+  lineup.forEach((p, i) => {
+    if (p && p.id === player.id) {
+      lineup[i] = null;
+      usedPlayerIds.delete(player.id);
+    }
+  });
+
+  lineup[slotIndex] = player;
+  usedPlayerIds.add(player.id);
+
+  renderField();
+  renderSidebarPlayers();
+  updateStrength();
+}
+
+function removePlayerFromSlot(slotIndex) {
+  if (lineup[slotIndex]) {
+    usedPlayerIds.delete(lineup[slotIndex].id);
+    lineup[slotIndex] = null;
+  }
+  renderField();
+  renderSidebarPlayers();
+  updateStrength();
+}
+
+function resetBuilder() {
+  lineup = new Array(11).fill(null);
+  usedPlayerIds = new Set();
+  selectedSlotIndex = -1;
+  renderField();
+  renderSidebarPlayers();
+  updateStrength();
+}
+
+// =====================================================
+// STRENGTH CALCULATION & DISPLAY
+// =====================================================
+function updateStrength() {
+  const result = calcularForcaColetiva(lineup);
+
+  const numberEl = document.getElementById('strengthNumber');
+  const gradeEl = document.getElementById('gradeLabel');
+  const barEl = document.getElementById('strengthBarFill');
+  const bonusesEl = document.getElementById('bonusesList');
+
+  animateNumber(numberEl, result.score);
+
+  gradeEl.textContent = result.grade;
+
+  if (result.grade.includes('Elite')) {
+    gradeEl.style.color = '#e040fb';
+  } else if (result.grade === 'Ouro') {
+    gradeEl.style.color = '#ffd700';
+  } else if (result.grade === 'Prata') {
+    gradeEl.style.color = '#b0bec5';
+  } else if (result.grade === 'Bronze') {
+    gradeEl.style.color = '#cd7f32';
+  } else {
+    gradeEl.style.color = 'var(--text-muted)';
+  }
+
+  barEl.style.width = `${result.score}%`;
+
+  bonusesEl.innerHTML = result.bonuses.map(b => `
+    <div class="bonus-item">
+      <span class="bonus-label">${b.label}</span>
+      <span class="bonus-value">${b.value}</span>
+    </div>
+  `).join('');
+}
+
+function animateNumber(el, target) {
+  const current = parseInt(el.textContent) || 0;
+  const diff = target - current;
+  const duration = 600;
+  const startTime = performance.now();
+
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(current + diff * eased);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update);
+}
+
+// =====================================================
+// SHARE / URL ENCODING
+// =====================================================
+function encodeTeam() {
+  const data = {
+    f: currentFormation,
+    p: lineup.map(p => p ? p.id : 0)
+  };
+  return btoa(JSON.stringify(data));
+}
+
+function decodeTeam(hash) {
+  try {
+    const data = JSON.parse(atob(hash));
+    if (data.f && FORMATIONS[data.f]) {
+      currentFormation = data.f;
+      renderFormationButtons();
+    }
+    if (data.p && Array.isArray(data.p)) {
+      lineup = data.p.map(id => {
+        if (id === 0) return null;
+        return PLAYERS.find(p => p.id === id) || null;
+      });
+      usedPlayerIds = new Set(lineup.filter(Boolean).map(p => p.id));
+    }
+    renderField();
+    renderSidebarPlayers();
+    updateStrength();
+  } catch (e) {
+    console.warn('Failed to decode team:', e);
+  }
+}
+
+function shareTeam() {
+  const filledCount = lineup.filter(Boolean).length;
+  if (filledCount === 0) {
+    alert('Escale pelo menos um jogador antes de compartilhar!');
+    return;
+  }
+
+  const hash = encodeTeam();
+  const url = window.location.origin + window.location.pathname + '#team=' + hash;
+
+  document.getElementById('shareLink').value = url;
+  document.getElementById('shareModal').classList.add('active');
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').classList.remove('active');
+}
+
+function copyShareLink() {
+  const input = document.getElementById('shareLink');
+  input.select();
+  document.execCommand('copy');
+
+  try {
+    navigator.clipboard.writeText(input.value);
+  } catch (e) { }
+
+  closeShareModal();
+  showToast();
+}
+
+function showToast() {
+  const toast = document.getElementById('copiedToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+document.getElementById('shareModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeShareModal();
+});
+
+// =====================================================
+// INITIALIZATION
+// =====================================================
+function init() {
+  renderPlayerCards();
+  renderFormationButtons();
+  renderField();
+  updateStrength();
+
+  const hash = window.location.hash;
+  if (hash.startsWith('#team=')) {
+    const teamData = hash.replace('#team=', '');
+    decodeTeam(teamData);
+    navigateTo('builder');
+  }
+
+  const sections = ['home', 'squad', 'builder'];
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`.nav-links a[data-section="${entry.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+// =====================================================
+// SUPABASE / LEADERBOARD / SAVE TEAM LOGIC
+// =====================================================
+
+function openSaveModal() {
+  const filledCount = lineup.filter(Boolean).length;
+  if (filledCount < 11) {
+    alert('Você precisa escalar os 11 jogadores antes de salvar seu time no Ranking!');
+    return;
+  }
+  document.getElementById('saveModal').classList.add('active');
+}
+
+function closeSaveModal() {
+  document.getElementById('saveModal').classList.remove('active');
+}
+
+document.getElementById('saveModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeSaveModal();
+});
+
+async function submitTeamToRanking() {
+  if (typeof supabase === 'undefined') {
+    alert("Supabase não configurado. Verifique o arquivo js/supabase.js");
+    return;
+  }
+
+  const ownerName = document.getElementById('ownerNameInput').value.trim();
+  const teamName = document.getElementById('teamNameInput').value.trim();
+
+  if (!ownerName || !teamName) {
+    alert('Preencha o Nome do Treinador e o Nome do Time.');
+    return;
+  }
+
+  const filledCount = lineup.filter(Boolean).length;
+  if (filledCount < 11) {
+    alert('Escale os 11 jogadores.');
+    return;
+  }
+
+  const playerIds = lineup.map(p => p.id);
+  
+  const btn = document.getElementById('submitTeamBtn');
+  btn.disabled = true;
+  btn.textContent = "Salvando...";
+
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .insert([
+        { 
+          owner_name: ownerName, 
+          team_name: teamName, 
+          formation: currentFormation, 
+          lineup: playerIds 
+        }
+      ]);
+
+    if (error) {
+      if (error.code === '23505') {
+        alert('Este nome de time já existe! Escolha outro.');
+      } else {
+        alert('Erro ao salvar time: ' + error.message);
+      }
+      throw error;
+    }
+
+    closeSaveModal();
+    const toast = document.getElementById('successToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+    
+    // Redirecionar pro ranking
+    setTimeout(() => {
+      navigateTo('leaderboard');
+    }, 1500);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Salvar Time";
+  }
+}
+
+async function loadLeaderboard() {
+  if (typeof supabase === 'undefined') {
+    document.getElementById('loadingRanking').textContent = "Supabase não configurado. Adicione suas credenciais no js/supabase.js";
+    return;
+  }
+
+  const loading = document.getElementById('loadingRanking');
+  const table = document.getElementById('leaderboardTable');
+  const tbody = document.getElementById('leaderboardBody');
+  
+  loading.style.display = 'block';
+  table.style.display = 'none';
+  
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select('*')
+      .order('total_score', { ascending: false })
+      .order('created_at', { ascending: true })
+      .limit(100);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      loading.textContent = "Nenhum time cadastrado ainda. Seja o primeiro!";
+      return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach((team, index) => {
+      const pos = index + 1;
+      let posHtml = pos;
+      if (pos === 1) posHtml = '🥇 1º';
+      if (pos === 2) posHtml = '🥈 2º';
+      if (pos === 3) posHtml = '🥉 3º';
+
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      
+      tr.innerHTML = `
+        <td style="padding: 16px 12px; font-weight: bold; color: ${pos <= 3 ? '#ffd700' : 'white'};">${posHtml}</td>
+        <td style="padding: 16px 12px; font-weight: bold;">${team.team_name} <br><span style="font-size:0.8rem;color:var(--text-muted);font-weight:normal;">${team.formation}</span></td>
+        <td style="padding: 16px 12px; color: var(--text-muted);">${team.owner_name}</td>
+        <td style="padding: 16px 12px; font-weight: 900; color: var(--blue-accent); font-size: 1.1rem;">${parseFloat(team.total_score).toFixed(1)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    loading.style.display = 'none';
+    table.style.display = 'table';
+
+  } catch (err) {
+    console.error(err);
+    loading.textContent = "Erro ao carregar o ranking.";
+  }
+}

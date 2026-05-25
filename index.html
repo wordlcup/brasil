@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copa 2026 Brasil — Escalações & Monte Seu Time</title>
+  <meta name="description" content="Monte a escalação do Brasil para a Copa do Mundo 2026. Escolha seus jogadores, defina a formação e compartilhe com seus amigos.">
+  <meta property="og:title" content="Copa 2026 Brasil — Monte Seu Time">
+  <meta property="og:description" content="Monte a escalação ideal do Brasil para a Copa 2026 e compartilhe!">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="navbar-brand" onclick="navigateTo('home')">
+      <span class="flag">🇧🇷</span>
+      <span>COPA 2026</span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" class="active" data-section="home" onclick="navigateTo('home')">Início</a></li>
+      <li><a href="#squad" data-section="squad" onclick="navigateTo('squad')">Elenco</a></li>
+      <li><a href="#builder" data-section="builder" onclick="navigateTo('builder')">Monte seu Time</a></li>
+      <li><a href="#leaderboard" data-section="leaderboard" onclick="navigateTo('leaderboard')">Ranking Global</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="hero" id="home">
+    <div class="hero-badge">
+      <span>🏆</span> Copa do Mundo 2026 — Estados Unidos, Canadá & México
+    </div>
+    <h1>
+      Seleção<br>
+      <span class="gradient-text">Brasileira 2026</span>
+    </h1>
+    <p>
+      Explore o elenco completo dos 26 convocados e monte sua escalação ideal
+      com o campo interativo estilo eFootball.
+    </p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="navigateTo('squad')">
+        <span>⚽</span> Ver Elenco
+      </button>
+      <button class="btn btn-gold" onclick="navigateTo('builder')">
+        <span>🏟️</span> Monte seu Time
+      </button>
+    </div>
+    <div class="stars-decoration" style="margin-top: 32px;">
+      <span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ELENCO / SQUAD SECTION -->
+  <section class="section" id="squad">
+    <div class="section-header">
+      <h2>🇧🇷 Elenco Oficial</h2>
+      <p>Os 26 convocados por Dorival Júnior para a Copa do Mundo 2026</p>
+    </div>
+
+    <div class="position-filters" id="positionFilters">
+      <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">Todos (26)</button>
+      <button class="filter-btn" data-filter="GK" onclick="filterPlayers('GK')">Goleiros</button>
+      <button class="filter-btn" data-filter="DEF" onclick="filterPlayers('DEF')">Defensores</button>
+      <button class="filter-btn" data-filter="MID" onclick="filterPlayers('MID')">Meias</button>
+      <button class="filter-btn" data-filter="ATK" onclick="filterPlayers('ATK')">Atacantes</button>
+    </div>
+
+    <div class="players-grid" id="playersGrid"></div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- BUILDER SECTION -->
+  <section class="section" id="builder">
+    <div class="section-header">
+      <h2>🏟️ Monte seu Time</h2>
+      <p>Clique em uma posição no campo e escolha o jogador na lista lateral</p>
+    </div>
+
+    <div class="builder-layout">
+      <!-- CAMPO -->
+      <div class="field-wrapper">
+        <!-- Banner de Visualização -->
+        <div id="viewingBanner" style="display:none; background: linear-gradient(135deg, rgba(0,176,255,0.15), rgba(0,176,255,0.05)); border: 1px solid rgba(0,176,255,0.3); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: none; align-items: center; gap: 12px;">
+          <span style="font-size: 1.5rem;">👁️</span>
+          <div>
+            <div style="font-weight: bold; color: var(--blue-accent);" id="viewingTeamName">Time</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Treinador: <span id="viewingOwnerName"></span> &mdash; <button onclick="resetBuilder(); hideViewingBanner()" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:0.85rem;padding:0;">Monte o seu próprio →</button></div>
+          </div>
+        </div>
+        <div class="field-controls">
+          <div class="formation-select" id="formationSelect"></div>
+          <button class="btn btn-sm btn-secondary" onclick="resetBuilder()">🔄 Limpar</button>
+        </div>
+        <div class="field-container" id="fieldContainer">
+          <svg class="field-svg" id="fieldSvg" viewBox="0 0 400 560" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+
+      <!-- PAINEL LATERAL -->
+      <div class="sidebar-panel" id="sidebarPanel">
+        <div class="sidebar-header">
+          <h3 id="sidebarTitle">Selecione uma posição</h3>
+          <p id="sidebarSubtitle">Clique em um slot no campo para começar</p>
+        </div>
+        <div class="sidebar-search">
+          <input type="text" id="searchPlayer" placeholder="🔍 Buscar jogador..." oninput="filterSidebarPlayers()">
+        </div>
+        <div class="sidebar-players" id="sidebarPlayers">
+          <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 12px;">👆</div>
+            Selecione uma posição no campo
+          </div>
+        </div>
+
+        <!-- FORÇA COLETIVA -->
+        <div class="strength-panel" id="strengthPanel">
+          <div class="strength-score">
+            <div class="strength-number" id="strengthNumber">0</div>
+            <div class="strength-meta">
+              <div class="grade-label" id="gradeLabel">—</div>
+              <div class="grade-sub">Força Coletiva</div>
+            </div>
+          </div>
+          <div class="strength-bar">
+            <div class="strength-bar-fill" id="strengthBarFill" style="width: 0%"></div>
+          </div>
+          <div class="bonuses-list" id="bonusesList"></div>
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="builder-actions" style="display: flex; gap: 8px;">
+          <button class="btn btn-sm btn-gold" onclick="openSaveModal()" style="flex: 2;">
+            <span>🏆</span> Salvar Ranking
+          </button>
+          <button class="btn btn-sm btn-primary" onclick="shareTeam()" style="flex: 1;" title="Compartilhar">
+            <span>📤</span>
+          </button>
+          <button class="btn btn-sm btn-secondary" onclick="resetBuilder()" style="flex: 1;" title="Limpar">
+            <span>🗑️</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- LEADERBOARD SECTION -->
+  <section class="section" id="leaderboard" style="display: none;">
+    <div class="section-header">
+      <h2>🏆 Ranking Global</h2>
+      <p>Acompanhe os melhores times com base no desempenho real na Copa!</p>
+    </div>
+    
+    <div class="leaderboard-container">
+      <div class="loading-ranking" id="loadingRanking" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        Carregando ranking do banco de dados...
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="leaderboard-table" id="leaderboardTable" style="display: none; width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+              <th style="padding: 12px;">Pos</th>
+              <th style="padding: 12px;">Nome do Time</th>
+              <th style="padding: 12px;">Treinador</th>
+              <th style="padding: 12px;">Pts</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>Feito com 💚💛 para a <span>Copa 2026</span> — Dados não oficiais, apenas para diversão!</p>
+  </footer>
+
+  <!-- SHARE MODAL -->
+  <div class="share-modal-overlay" id="shareModal">
+    <div class="share-modal">
+      <h3>📤 Compartilhar Time</h3>
+      <p>Envie este link para seus amigos verem sua escalação!</p>
+      <div class="share-link-box">
+        <input type="text" id="shareLink" readonly>
+        <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copiar</button>
+      </div>
+      <button class="btn btn-sm btn-secondary" onclick="closeShareModal()" style="width: 100%;">Fechar</button>
+    </div>
+  </div>
+
+  <!-- SAVE MODAL -->
+  <div class="share-modal-overlay" id="saveModal">
+    <div class="share-modal" style="max-width: 440px;">
+      <h3>🏆 Salvar Time no Ranking</h3>
+      <p style="color: var(--text-muted); margin-bottom: 4px;">Cadastre seu time para competir no <strong style="color: white;">Ranking Global</strong> e ganhe um link para compartilhar sua escalação!</p>
+      
+      <div style="margin-top: 16px; text-align: left; display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Seu Nome *</label>
+          <input type="text" id="ownerNameInput" placeholder="Ex: João Silva" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Seu E-mail * <span style="color: var(--text-muted); font-weight: normal;">(para acesso futuro)</span></label>
+          <input type="email" id="ownerEmailInput" placeholder="voce@email.com" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Nome do Time *</label>
+          <input type="text" id="teamNameInput" placeholder="Ex: Galáticos FC" style="width: 100%; padding: 12px; margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+        </div>
+      </div>
+
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 12px;">🔒 Seu e-mail não será exibido publicamente.</p>
+
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <button class="btn btn-sm btn-primary" onclick="submitTeamToRanking()" style="flex: 1;" id="submitTeamBtn">Salvar e Gerar Link</button>
+        <button class="btn btn-sm btn-secondary" onclick="closeSaveModal()" style="flex: 1;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="copied-toast" id="copiedToast">✅ Link copiado!</div>
+  <div class="copied-toast" id="successToast" style="background: var(--blue-accent);">Time salvo! Gerando link...</div>
+
+  <!-- SUCCESS SHARE MODAL -->
+  <div class="share-modal-overlay" id="teamSavedModal">
+    <div class="share-modal" style="max-width: 460px;">
+      <div style="text-align: center; margin-bottom: 16px;">
+        <div style="font-size: 3rem;">🏆</div>
+        <h3 style="margin: 8px 0 4px;">Time Salvo com Sucesso!</h3>
+        <p id="savedTeamTitle" style="color: var(--blue-accent); font-weight: bold;"></p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Seu link exclusivo está pronto! Compartilhe com seus amigos.</p>
+      </div>
+      <div class="share-link-box" style="margin-bottom: 12px;">
+        <input type="text" id="teamShareLink" readonly style="font-size: 0.85rem;">
+        <button class="btn btn-sm btn-primary" onclick="copyTeamShareLink()">Copiar</button>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-sm btn-gold" onclick="openWhatsApp()" style="flex: 1;">📲 WhatsApp</button>
+        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('teamSavedModal').classList.remove('active')" style="flex: 1;">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/players.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

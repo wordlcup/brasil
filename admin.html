@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Cartola Copa 2026</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Estilos específicos para o Admin para não sobrecarregar o style.css */
+    .admin-container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+    .admin-player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .admin-player-item {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.03);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .admin-player-item .mini-avatar {
+      width: 40px; height: 40px; margin-right: 16px;
+    }
+    .admin-player-item .info {
+      flex: 1;
+    }
+    .admin-player-item .info .name {
+      font-weight: bold;
+    }
+    .admin-player-item .info .pos {
+      font-size: 0.8rem; color: var(--text-muted);
+    }
+    .score-input {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 100px;
+      text-align: center;
+      font-size: 1rem;
+    }
+    .process-btn {
+      width: 100%;
+      margin-top: 24px;
+      background: var(--primary);
+      padding: 16px;
+      font-size: 1.1rem;
+    }
+    .admin-logs {
+      margin-top: 24px;
+      background: rgba(0,0,0,0.3);
+      padding: 16px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: #10b981;
+      min-height: 100px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="admin-container">
+    <div class="admin-header">
+      <h2>Painel de Controle (Admin)</h2>
+      <a href="index.html" style="color: var(--text-muted); text-decoration: none;">Voltar ao Site</a>
+    </div>
+
+    <p style="color: var(--text-muted); margin-bottom: 24px;">Insira a pontuação feita por cada jogador na rodada atual. Deixe em branco os que não jogaram ou fizeram 0 pontos.</p>
+
+    <div class="admin-player-list" id="adminPlayerList">
+      <!-- Gerado via JS -->
+    </div>
+
+    <button class="btn btn-primary process-btn" id="processRoundBtn">Processar Pontuações (Somar ao Ranking)</button>
+
+    <div class="admin-logs" id="adminLogs">
+      Pronto para processar a rodada...
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/players.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
