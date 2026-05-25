@@ -30,6 +30,7 @@ function showAdminPanel() {
   // Carrega os dados só depois do login
   renderAdminPlayers();
   loadAdminTeams();
+  loadAdminMatches();
 }
 
 async function loginAdmin() {
@@ -250,5 +251,178 @@ async function loadAdminTeams() {
   } catch (err) {
     console.error(err);
     tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar times.</td></tr>';
+  }
+}
+
+// =====================================================
+// JOGOS E BOLÃO LOGIC
+// =====================================================
+
+async function createMatch() {
+  const teamA = document.getElementById('newTeamA').value.trim();
+  const teamB = document.getElementById('newTeamB').value.trim();
+
+  if (!teamA || !teamB) {
+    alert('Preencha os dois times!');
+    return;
+  }
+
+  try {
+    const { error } = await supabase.from('matches').insert([
+      { team_a: teamA, team_b: teamB, status: 'open' }
+    ]);
+    if (error) throw error;
+    
+    document.getElementById('newTeamA').value = '';
+    document.getElementById('newTeamB').value = '';
+    loadAdminMatches();
+    alert('Jogo criado com sucesso!');
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao criar jogo: ' + err.message);
+  }
+}
+
+async function loadAdminMatches() {
+  const openList = document.getElementById('adminMatchesList');
+  const closedList = document.getElementById('adminClosedMatchesList');
+  openList.innerHTML = '<div style="color:var(--text-muted)">Carregando...</div>';
+  closedList.innerHTML = '<div style="color:var(--text-muted)">Carregando...</div>';
+
+  try {
+    const { data, error } = await supabase
+      .from('matches')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    openList.innerHTML = '';
+    closedList.innerHTML = '';
+
+    if (!data || data.length === 0) {
+      openList.innerHTML = '<div style="color:var(--text-muted)">Nenhum jogo cadastrado.</div>';
+      return;
+    }
+
+    data.forEach(match => {
+      const el = document.createElement('div');
+      el.style.background = 'rgba(255,255,255,0.03)';
+      el.style.padding = '12px 16px';
+      el.style.borderRadius = '8px';
+      el.style.border = '1px solid rgba(255,255,255,0.05)';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'space-between';
+
+      if (match.status === 'open') {
+        el.innerHTML = `
+          <div style="font-weight: bold;">${match.team_a} x ${match.team_b}</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="number" id="score_a_${match.id}" placeholder="0" class="score-input" style="width: 50px;">
+            <span>X</span>
+            <input type="number" id="score_b_${match.id}" placeholder="0" class="score-input" style="width: 50px;">
+            <button class="btn btn-sm btn-primary" onclick="closeMatchAndCalculatePoints('${match.id}')">Encerrar e Calcular</button>
+          </div>
+        `;
+        openList.appendChild(el);
+      } else {
+        el.innerHTML = `
+          <div style="font-weight: bold;">${match.team_a} <span style="color: var(--blue-accent); font-size: 1.2rem; margin: 0 8px;">${match.score_a} x ${match.score_b}</span> ${match.team_b}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Encerrado</div>
+        `;
+        closedList.appendChild(el);
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function closeMatchAndCalculatePoints(matchId) {
+  const scoreA = parseInt(document.getElementById(`score_a_${matchId}`).value);
+  const scoreB = parseInt(document.getElementById(`score_b_${matchId}`).value);
+
+  if (isNaN(scoreA) || isNaN(scoreB)) {
+    alert('Preencha o placar oficial antes de encerrar o jogo.');
+    return;
+  }
+
+  if (!confirm(`Confirmar encerramento com placar: ${scoreA} x ${scoreB}? Os pontos serão calculados e distribuídos.`)) return;
+
+  try {
+    // 1. Atualizar o match para fechado e salvar o placar real
+    const { error: matchError } = await supabase
+      .from('matches')
+      .update({ score_a: scoreA, score_b: scoreB, status: 'closed' })
+      .eq('id', matchId);
+    
+    if (matchError) throw matchError;
+
+    // 2. Buscar palpites deste jogo
+    const { data: guesses, error: guessesError } = await supabase
+      .from('guesses')
+      .select('*')
+      .eq('match_id', matchId);
+    
+    if (guessesError) throw guessesError;
+
+    let totalPointsAwarded = 0;
+    const teamPointsMap = {}; // para acumular pontos por time se quisermos dar batch update
+
+    // 3. Avaliar pontuação e fazer update na tabela de guesses
+    for (const guess of guesses) {
+      let points = 0;
+      // Acertou na mosca
+      if (guess.guess_a === scoreA && guess.guess_b === scoreB) {
+        points = 5;
+      } else {
+        // Acertou o vencedor ou se foi empate
+        const realDiff = scoreA - scoreB;
+        const guessDiff = guess.guess_a - guess.guess_b;
+        
+        // Se ambos forem > 0 (A venceu), ambos < 0 (B venceu), ou ambos == 0 (empate)
+        if (Math.sign(realDiff) === Math.sign(guessDiff)) {
+          points = 1;
+        }
+      }
+
+      if (points > 0) {
+        totalPointsAwarded += points;
+        teamPointsMap[guess.team_id] = (teamPointsMap[guess.team_id] || 0) + points;
+        
+        // Salva pontos ganhos no próprio palpite para histórico
+        await supabase
+          .from('guesses')
+          .update({ points_earned: points })
+          .eq('id', guess.id);
+      }
+    }
+
+    // 4. Somar os pontos aos totais dos times no Cartola
+    // Opcional: Para evitar ler e escrever um a um, poderiamos puxar todos os times afetados, somar e dar update.
+    for (const [teamId, pts] of Object.entries(teamPointsMap)) {
+      const { data: teamData, error: teamFetchError } = await supabase
+        .from('teams')
+        .select('total_score')
+        .eq('id', teamId)
+        .single();
+        
+      if (!teamFetchError && teamData) {
+        const novoTotal = parseFloat(teamData.total_score || 0) + pts;
+        await supabase
+          .from('teams')
+          .update({ total_score: novoTotal })
+          .eq('id', teamId);
+      }
+    }
+
+    alert(`Jogo encerrado com sucesso!\nForam distribuídos um total de ${totalPointsAwarded} pontos para os usuários baseados nos palpites.`);
+    loadAdminMatches();
+    loadAdminTeams(); // recarrega a tabela de times para mostrar novos totais
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao calcular pontos: ' + err.message);
   }
 }

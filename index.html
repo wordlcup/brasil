@@ -25,6 +25,7 @@
       <li><a href="#home" class="active" data-section="home" onclick="navigateTo('home')">Início</a></li>
       <li><a href="#squad" data-section="squad" onclick="navigateTo('squad')">Elenco</a></li>
       <li><a href="#builder" data-section="builder" onclick="navigateTo('builder')">Monte seu Time</a></li>
+      <li><a href="#betting" data-section="betting" onclick="navigateTo('betting')">Bolão</a></li>
       <li><a href="#leaderboard" data-section="leaderboard" onclick="navigateTo('leaderboard')">Ranking Global</a></li>
       <li><a href="#" onclick="openLoginModal()" style="color: var(--primary); font-weight: bold;">🔑 Entrar</a></li>
       <li><a href="admin.html" style="color: var(--text-muted); font-size: 0.9rem;">⚙️ Admin</a></li>
@@ -66,6 +67,30 @@
     
     <div id="topPlayersContainer" style="display: flex; gap: 16px; overflow-x: auto; padding: 16px; align-items: center; justify-content: flex-start; max-width: 1000px; margin: 0 auto;">
       <div style="color: var(--text-muted); text-align: center; width: 100%;">Carregando craques...</div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- BOLÃO DA COPA SECTION -->
+  <section class="section" id="betting" style="display: none;">
+    <div class="section-header">
+      <h2>🎲 Bolão da Copa</h2>
+      <p>Adivinhe os placares dos próximos jogos e ganhe pontos extras para o seu time!</p>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
+        Placar Exato: <strong>+5 pts</strong> | Acertou Vencedor/Empate: <strong>+1 pt</strong>
+      </div>
+    </div>
+
+    <div id="bettingAuthMessage" style="text-align: center; padding: 32px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+      <div style="font-size: 3rem; margin-bottom: 16px;">🔑</div>
+      <h3 style="margin-bottom: 8px;">Identifique-se para Palpitar</h3>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">Você precisa estar logado no seu time para registrar seus palpites.</p>
+      <button class="btn btn-primary" onclick="openLoginModal()">Entrar no Meu Time</button>
+    </div>
+
+    <div id="bettingContainer" style="display: none; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+      <!-- Jogos renderizados via JS -->
     </div>
   </section>
 

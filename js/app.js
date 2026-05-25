@@ -979,8 +979,10 @@ async function loadLeaderboard() {
 }
 
 // =====================================================
-// LOGIN E DASHBOARD DE CRAQUES
+// LOGIN E DASHBOARD DE CRAQUES E BOLÃO
 // =====================================================
+
+let loggedTeamId = null;
 
 function openLoginModal() {
   document.getElementById('loginModal').classList.add('active');
@@ -1021,12 +1023,16 @@ async function loginUser() {
     }
 
     const teamId = data[0].id;
+    loggedTeamId = teamId;
     closeLoginModal();
     
-    alert(`Bem-vindo de volta, ${data[0].owner_name}! Carregando sua escalação...`);
+    alert(`Bem-vindo de volta, ${data[0].owner_name}! Carregando sua escalação e liberando Bolão...`);
     
     // Reaproveitamos a função que carrega time do banco
     loadTeamFromDatabase(teamId);
+    
+    // Atualiza aba de apostas
+    loadBettingMatches();
     
   } catch (err) {
     console.error(err);
@@ -1100,3 +1106,130 @@ async function loadTopPlayers() {
     container.innerHTML = '<div style="color:red;">Erro ao carregar craques.</div>';
   }
 }
+
+// =====================================================
+// BOLÃO LOGIC
+// =====================================================
+
+async function loadBettingMatches() {
+  const authMessage = document.getElementById('bettingAuthMessage');
+  const bettingContainer = document.getElementById('bettingContainer');
+  
+  if (!loggedTeamId) {
+    authMessage.style.display = 'block';
+    bettingContainer.style.display = 'none';
+    return;
+  }
+
+  authMessage.style.display = 'none';
+  bettingContainer.style.display = 'flex';
+  bettingContainer.innerHTML = '<div style="color:var(--text-muted);text-align:center;">Buscando jogos...</div>';
+
+  try {
+    // Busca os jogos abertos
+    const { data: matches, error: matchesError } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+
+    if (matchesError) throw matchesError;
+
+    if (!matches || matches.length === 0) {
+      bettingContainer.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:24px;">Nenhum jogo aberto no momento. Volte mais tarde!</div>';
+      return;
+    }
+
+    // Busca os palpites já feitos pelo usuário logado
+    const { data: guesses, error: guessesError } = await supabase
+      .from('guesses')
+      .select('*')
+      .eq('team_id', loggedTeamId);
+
+    if (guessesError) throw guessesError;
+    
+    const userGuesses = {};
+    guesses.forEach(g => {
+      userGuesses[g.match_id] = g;
+    });
+
+    bettingContainer.innerHTML = '';
+
+    matches.forEach(match => {
+      const existingGuess = userGuesses[match.id];
+      const hasGuessed = !!existingGuess;
+      
+      const el = document.createElement('div');
+      el.style.background = 'rgba(255,255,255,0.03)';
+      el.style.padding = '24px';
+      el.style.borderRadius = '12px';
+      el.style.border = '1px solid rgba(255,255,255,0.05)';
+      el.style.textAlign = 'center';
+
+      el.innerHTML = `
+        <h3 style="margin-bottom: 16px;">${match.team_a} x ${match.team_b}</h3>
+        <div style="display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 24px;">
+          <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">${match.team_a}</div>
+            <input type="number" id="guess_a_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_a : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5);">
+          </div>
+          <div style="font-size: 1.5rem; font-weight: bold; color: var(--text-muted);">X</div>
+          <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">${match.team_b}</div>
+            <input type="number" id="guess_b_${match.id}" ${hasGuessed ? 'disabled' : ''} value="${hasGuessed ? existingGuess.guess_b : ''}" min="0" class="score-input" style="width: 100%; font-size: 1.5rem; padding: 12px; background: rgba(0,0,0,0.5);">
+          </div>
+        </div>
+        ${hasGuessed 
+          ? `<div style="color: var(--primary); font-weight: bold;">✅ Palpite Registrado! Aguarde o resultado oficial.</div>` 
+          : `<button class="btn btn-primary" style="width: 100%; max-width: 250px;" onclick="submitGuess('${match.id}')">Salvar Palpite</button>`
+        }
+      `;
+      bettingContainer.appendChild(el);
+    });
+
+  } catch (err) {
+    console.error(err);
+    bettingContainer.innerHTML = '<div style="color:red;text-align:center;">Erro ao carregar jogos.</div>';
+  }
+}
+
+async function submitGuess(matchId) {
+  if (!loggedTeamId) {
+    alert("Você precisa estar logado!");
+    return;
+  }
+
+  const guessA = parseInt(document.getElementById(`guess_a_${matchId}`).value);
+  const guessB = parseInt(document.getElementById(`guess_b_${matchId}`).value);
+
+  if (isNaN(guessA) || isNaN(guessB)) {
+    alert("Por favor, preencha o placar corretamente!");
+    return;
+  }
+
+  try {
+    const { error } = await supabase.from('guesses').insert([
+      {
+        match_id: matchId,
+        team_id: loggedTeamId,
+        guess_a: guessA,
+        guess_b: guessB
+      }
+    ]);
+
+    if (error) {
+      if (error.code === '23505') {
+        alert("Você já enviou um palpite para este jogo!");
+      } else {
+        throw error;
+      }
+    } else {
+      alert("Palpite registrado com sucesso! Boa sorte!");
+      loadBettingMatches();
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar palpite: " + err.message);
+  }
+}
+

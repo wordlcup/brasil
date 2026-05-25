@@ -161,6 +161,7 @@
 
     <div class="admin-tabs">
       <button class="admin-tab active" onclick="switchAdminTab('scores')">Lançar Pontos</button>
+      <button class="admin-tab" onclick="switchAdminTab('matches')">Gerenciar Jogos</button>
       <button class="admin-tab" onclick="switchAdminTab('teams')">Times Salvos</button>
     </div>
 
@@ -179,7 +180,30 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 2: TIMES SALVOS -->
+    <!-- SEÇÃO 2: GERENCIAR JOGOS -->
+    <div id="section-matches" class="admin-section">
+      <div style="background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="margin-bottom: 12px; margin-top: 0;">Criar Novo Jogo</h3>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <input type="text" id="newTeamA" placeholder="Time A (ex: Brasil)" class="score-input" style="flex: 1; text-align: left;">
+          <span>X</span>
+          <input type="text" id="newTeamB" placeholder="Time B (ex: Croácia)" class="score-input" style="flex: 1; text-align: left;">
+          <button class="btn btn-primary" onclick="createMatch()">Salvar Jogo</button>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 12px; margin-top: 0;">Jogos Abertos (Aguardando Placar)</h3>
+      <div id="adminMatchesList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+        <!-- Gerado via JS -->
+      </div>
+      
+      <h3 style="margin-bottom: 12px; margin-top: 0; color: var(--text-muted);">Jogos Encerrados</h3>
+      <div id="adminClosedMatchesList" style="display: flex; flex-direction: column; gap: 12px; opacity: 0.7;">
+        <!-- Gerado via JS -->
+      </div>
+    </div>
+
+    <!-- SEÇÃO 3: TIMES SALVOS -->
     <div id="section-teams" class="admin-section">
       <p style="color: var(--text-muted); margin-bottom: 16px;">Lista de todas as formações cadastradas pelos usuários.</p>
       
