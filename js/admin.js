@@ -292,7 +292,7 @@ async function loadAdminMatches() {
   try {
     const { data, error } = await supabase
       .from('matches')
-      .select('*')
+      .select('*, guesses(*, teams(owner_name, owner_email))')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -312,24 +312,49 @@ async function loadAdminMatches() {
       el.style.borderRadius = '8px';
       el.style.border = '1px solid rgba(255,255,255,0.05)';
       el.style.display = 'flex';
-      el.style.alignItems = 'center';
-      el.style.justifyContent = 'space-between';
+      el.style.flexDirection = 'column';
+      el.style.gap = '12px';
+
+      // Renderiza palpites (se houver)
+      let guessesHtml = '';
+      if (match.guesses && match.guesses.length > 0) {
+        guessesHtml = `<div style="margin-top: 8px; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
+          <strong style="color: var(--text-muted);">Palpites Registrados (${match.guesses.length}):</strong>
+          <ul style="list-style: none; padding: 0; margin: 4px 0 0 0; max-height: 150px; overflow-y: auto;">
+            ${match.guesses.map(g => `
+              <li style="padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.05);">
+                <span style="color: var(--blue-accent); font-weight: bold;">[${g.guess_a} x ${g.guess_b}]</span> - 
+                ${g.teams?.owner_name} <span style="color: var(--text-muted); font-size: 0.75rem;">(${g.teams?.owner_email})</span>
+                ${match.status === 'closed' ? ` <span style="color: #10b981;">(+${g.points_earned} pts)</span>` : ''}
+              </li>
+            `).join('')}
+          </ul>
+        </div>`;
+      } else {
+        guessesHtml = `<div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">Nenhum palpite ainda.</div>`;
+      }
 
       if (match.status === 'open') {
         el.innerHTML = `
-          <div style="font-weight: bold;">${match.team_a} x ${match.team_b}</div>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="number" id="score_a_${match.id}" placeholder="0" class="score-input" style="width: 50px;">
-            <span>X</span>
-            <input type="number" id="score_b_${match.id}" placeholder="0" class="score-input" style="width: 50px;">
-            <button class="btn btn-sm btn-primary" onclick="closeMatchAndCalculatePoints('${match.id}')">Encerrar e Calcular</button>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: bold; font-size: 1.1rem;">${match.team_a} x ${match.team_b}</div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="number" id="score_a_${match.id}" placeholder="0" class="score-input" style="width: 50px;">
+              <span>X</span>
+              <input type="number" id="score_b_${match.id}" placeholder="0" class="score-input" style="width: 50px;">
+              <button class="btn btn-sm btn-primary" onclick="closeMatchAndCalculatePoints('${match.id}')">Encerrar e Calcular</button>
+            </div>
           </div>
+          ${guessesHtml}
         `;
         openList.appendChild(el);
       } else {
         el.innerHTML = `
-          <div style="font-weight: bold;">${match.team_a} <span style="color: var(--blue-accent); font-size: 1.2rem; margin: 0 8px;">${match.score_a} x ${match.score_b}</span> ${match.team_b}</div>
-          <div style="font-size: 0.8rem; color: var(--text-muted);">Encerrado</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: bold; font-size: 1.1rem;">${match.team_a} <span style="color: var(--blue-accent); font-size: 1.3rem; margin: 0 12px;">${match.score_a} x ${match.score_b}</span> ${match.team_b}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">Encerrado</div>
+          </div>
+          ${guessesHtml}
         `;
         closedList.appendChild(el);
       }

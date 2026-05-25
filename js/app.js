@@ -33,14 +33,24 @@ function navigateTo(section) {
     document.getElementById('home').style.display = 'none';
     document.getElementById('squad').style.display = 'none';
     document.getElementById('builder').style.display = 'none';
+    document.getElementById('betting').style.display = 'none';
     document.getElementById('leaderboard').style.display = 'block';
     window.scrollTo(0,0);
     loadLeaderboard();
+  } else if (section === 'betting') {
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('squad').style.display = 'none';
+    document.getElementById('builder').style.display = 'none';
+    document.getElementById('leaderboard').style.display = 'none';
+    document.getElementById('betting').style.display = 'block';
+    window.scrollTo(0,0);
+    loadBettingMatches();
   } else {
     document.getElementById('home').style.display = 'flex';
     document.getElementById('squad').style.display = 'block';
     document.getElementById('builder').style.display = 'block';
     document.getElementById('leaderboard').style.display = 'none';
+    document.getElementById('betting').style.display = 'none';
     
     const el = document.getElementById(section);
     if (el) {
