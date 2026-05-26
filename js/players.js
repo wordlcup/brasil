@@ -303,7 +303,7 @@ const POSITION_GROUPS = {
 // =====================================================
 // ALGORITMO — FORÇA COLETIVA
 // =====================================================
-function getIndividualRating(player) {
+function getIndividualRating(player, targetPos = null) {
   const a = player.attributes;
   const pos = player.position;
   const weights = {
@@ -319,27 +319,47 @@ function getIndividualRating(player) {
     ST: { PAC: 0.15, SHO: 0.38, PAS: 0.10, DRI: 0.20, DEF: 0.02, PHY: 0.15 },
   };
   const w = weights[pos] || weights["CM"];
-  return (
+
+  let rating = (
     a.PAC * w.PAC + a.SHO * w.SHO + a.PAS * w.PAS +
     a.DRI * w.DRI + a.DEF * w.DEF + a.PHY * w.PHY
   );
+
+  // Penalidade se estiver fora da posição ideal
+  if (targetPos && targetPos !== pos) {
+    const isCompatible = (POSITION_GROUPS[targetPos] || []).includes(pos);
+    rating *= isCompatible ? 0.95 : 0.70; // 5% de perda se compatível, 30% se totalmente fora
+  }
+
+  return rating;
 }
 
-function calcularForcaColetiva(lineup) {
+function calcularForcaColetiva(lineup, formationKey = "4-3-3") {
   const players = lineup.filter(Boolean);
   if (players.length === 0) return { score: 0, grade: "—", bonuses: [] };
 
+  const formation = FORMATIONS[formationKey];
   let totalRating = 0;
   let totalDef = 0, totalDri = 0, totalPas = 0;
   const clubCount = {};
+  let hasLeader = false;
 
-  for (const p of players) {
-    totalRating += getIndividualRating(p);
-    totalDef += p.attributes.DEF;
-    totalDri += p.attributes.DRI;
-    totalPas += p.attributes.PAS;
-    clubCount[p.club] = (clubCount[p.club] || 0) + 1;
-  }
+  lineup.forEach((p, index) => {
+    if (p) {
+      const targetPos = formation.slots[index].pos;
+      totalRating += getIndividualRating(p, targetPos);
+
+      totalDef += p.attributes.DEF;
+      totalDri += p.attributes.DRI;
+      totalPas += p.attributes.PAS;
+
+      clubCount[p.club] = (clubCount[p.club] || 0) + 1;
+
+      if (p.traits.some(t => t.includes("Líder") || t.includes("Capitão"))) {
+        hasLeader = true;
+      }
+    }
+  });
 
   const n = players.length;
   let mediaBase = totalRating / n;
@@ -351,6 +371,7 @@ function calcularForcaColetiva(lineup) {
 
   if (defMedia > 72) { bonus += 3; bonuses.push({ label: "Bloco defensivo", value: "+3" }); }
   if (driPasMedia > 78) { bonus += 3; bonuses.push({ label: "Criatividade ofensiva", value: "+3" }); }
+  if (hasLeader) { bonus += 2; bonuses.push({ label: "Liderança em campo", value: "+2" }); }
   if (n === 11) { bonus += 5; bonuses.push({ label: "Time completo", value: "+5" }); }
 
   let quimica = 0;

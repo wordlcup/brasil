@@ -226,15 +226,18 @@ function renderField() {
 
   let svgContent = `
     <defs>
-      <linearGradient id="fieldGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#1a7a3a"/>
-        <stop offset="25%" stop-color="#228b42"/>
-        <stop offset="50%" stop-color="#1e7d3c"/>
-        <stop offset="75%" stop-color="#22924a"/>
-        <stop offset="100%" stop-color="#1a7a3a"/>
-      </linearGradient>
+      <pattern id="grassPattern" x="0" y="0" width="100" height="80" patternUnits="userSpaceOnUse">
+        <rect width="100" height="40" fill="#15803d" />
+        <rect y="40" width="100" height="40" fill="#166534" />
+      </pattern>
+      
+      <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stop-color="rgba(0,0,0,0)"/>
+        <stop offset="100%" stop-color="rgba(0,0,0,0.4)"/>
+      </radialGradient>
+
       <filter id="glow">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feGaussianBlur stdDeviation="2" result="blur"/>
         <feMerge>
           <feMergeNode in="blur"/>
           <feMergeNode in="SourceGraphic"/>
@@ -245,41 +248,38 @@ function renderField() {
         <stop offset="100%" stop-color="rgba(0,200,83,0)"/>
       </radialGradient>
       <radialGradient id="slotGradFilled" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="rgba(0,200,83,0.5)"/>
-        <stop offset="100%" stop-color="rgba(0,100,40,0.3)"/>
+        <stop offset="0%" stop-color="rgba(255,255,255,0.4)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.05)"/>
       </radialGradient>
       <radialGradient id="slotGradSelected" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="rgba(255,215,0,0.5)"/>
-        <stop offset="100%" stop-color="rgba(255,215,0,0.1)"/>
+        <stop offset="0%" stop-color="rgba(59,130,246,0.6)"/>
+        <stop offset="100%" stop-color="rgba(59,130,246,0.1)"/>
       </radialGradient>
     </defs>
 
-    <rect x="0" y="0" width="${W}" height="${H}" rx="16" fill="url(#fieldGrad)"/>
+    <!-- Gramado com Listras -->
+    <rect x="0" y="0" width="${W}" height="${H}" fill="url(#grassPattern)"/>
+    
+    <!-- Efeito de Sombra nas Bordas -->
+    <rect x="0" y="0" width="${W}" height="${H}" fill="url(#vignette)"/>
 
-    ${Array.from({ length: 10 }, (_, i) => i % 2 === 0
-    ? `<rect x="20" y="${20 + i * 52}" width="${W - 40}" height="52" fill="rgba(255,255,255,0.03)" rx="0"/>`
-    : ''
-  ).join('')}
+    <!-- Linhas do Campo com Brilho -->
+    <g stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none" filter="url(#glow)">
+      <rect x="20" y="20" width="${W - 40}" height="${H - 40}" rx="2"/>
+      <line x1="20" y1="${H / 2}" x2="${W - 20}" y2="${H / 2}"/>
+      <circle cx="${W / 2}" cy="${H / 2}" r="60"/>
+      
+      <!-- Grande Área Superior -->
+      <rect x="${W / 2 - 80}" y="20" width="160" height="70"/>
+      <rect x="${W / 2 - 40}" y="20" width="80" height="25"/>
+      
+      <!-- Grande Área Inferior -->
+      <rect x="${W / 2 - 80}" y="${H - 90}" width="160" height="70"/>
+      <rect x="${W / 2 - 40}" y="${H - 45}" width="80" height="25"/>
+    </g>
 
-    <rect x="20" y="20" width="${W - 40}" height="${H - 40}" rx="4" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-    <line x1="20" y1="${H / 2}" x2="${W - 20}" y2="${H / 2}" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-    <circle cx="${W / 2}" cy="${H / 2}" r="60" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
     <circle cx="${W / 2}" cy="${H / 2}" r="4" fill="rgba(255,255,255,0.8)"/>
 
-    <rect x="${W / 2 - 80}" y="20" width="160" height="70" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-    <rect x="${W / 2 - 40}" y="20" width="80" height="30" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-    <circle cx="${W / 2}" cy="60" r="3" fill="rgba(255,255,255,0.6)"/>
-    <path d="M ${W / 2 - 40} 90 Q ${W / 2} 110 ${W / 2 + 40} 90" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-
-    <rect x="${W / 2 - 80}" y="${H - 90}" width="160" height="70" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-    <rect x="${W / 2 - 40}" y="${H - 50}" width="80" height="30" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-    <circle cx="${W / 2}" cy="${H - 60}" r="3" fill="rgba(255,255,255,0.6)"/>
-    <path d="M ${W / 2 - 40} ${H - 90} Q ${W / 2} ${H - 110} ${W / 2 + 40} ${H - 90}" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-
-    <path d="M 20 30 Q 30 20 40 20" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-    <path d="M ${W - 40} 20 Q ${W - 30} 20 ${W - 20} 30" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-    <path d="M 20 ${H - 30} Q 30 ${H - 20} 40 ${H - 20}" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-    <path d="M ${W - 40} ${H - 20} Q ${W - 30} ${H - 20} ${W - 20} ${H - 30}" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
   `;
 
   const formation = FORMATIONS[currentFormation];
@@ -547,7 +547,7 @@ function resetBuilder() {
 // STRENGTH CALCULATION & DISPLAY
 // =====================================================
 function updateStrength() {
-  const result = calcularForcaColetiva(lineup);
+  const result = calcularForcaColetiva(lineup, currentFormation);
 
   const numberEl = document.getElementById('strengthNumber');
   const gradeEl = document.getElementById('gradeLabel');
