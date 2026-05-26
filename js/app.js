@@ -560,14 +560,23 @@ function updateStrength() {
 
   if (result.grade.includes('Elite')) {
     gradeEl.style.color = '#e040fb';
+    barEl.style.background = 'linear-gradient(90deg, #6366f1, #e040fb)'; // Cor Elite
   } else if (result.grade === 'Ouro') {
     gradeEl.style.color = '#ffd700';
+    barEl.style.background = 'linear-gradient(90deg, #f59e0b, #ffd700)'; // Cor Ouro
   } else if (result.grade === 'Prata') {
     gradeEl.style.color = '#b0bec5';
+    barEl.style.background = 'linear-gradient(90deg, #64748b, #b0bec5)'; // Cor Prata
   } else if (result.grade === 'Bronze') {
     gradeEl.style.color = '#cd7f32';
+    barEl.style.background = 'linear-gradient(90deg, #92400e, #cd7f32)'; // Cor Bronze
+  } else if (result.grade === '—') { // Adicionado para o caso inicial ou time vazio
+    gradeEl.style.color = 'var(--text-muted)';
+    barEl.style.background = 'var(--border-subtle)'; // Cor neutra
+    barEl.style.width = '0%'; // Barra vazia
   } else {
     gradeEl.style.color = 'var(--text-muted)';
+    barEl.style.background = 'var(--blue-accent)';
   }
 
   barEl.style.width = `${result.score}%`;
@@ -635,6 +644,22 @@ function shareTeam() {
   if (filledCount === 0) {
     alert('Escale pelo menos um jogador antes de compartilhar!');
     return;
+  }
+
+  // Captura visual do campo
+  const fieldWrapper = document.querySelector('.field-wrapper');
+  if (fieldWrapper && typeof html2canvas !== 'undefined') {
+    html2canvas(fieldWrapper, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true
+    }).then(canvas => {
+      const imageDataURL = canvas.toDataURL('image/png');
+      document.getElementById('generatedTeamImage').src = imageDataURL;
+      const dlBtn = document.getElementById('downloadTeamImage');
+      dlBtn.href = imageDataURL;
+      dlBtn.style.display = 'inline-flex';
+    }).catch(err => console.error("Erro ao gerar imagem:", err));
   }
 
   const hash = encodeTeam();
@@ -826,6 +851,23 @@ async function submitTeamToRanking() {
       loggedOwnerName = ownerName;
       updateLoginNavBar();
       loadBettingMatches();
+
+      // Captura visual para o modal de sucesso
+      const fieldWrapper = document.querySelector('.field-wrapper');
+      if (fieldWrapper && typeof html2canvas !== 'undefined') {
+        html2canvas(fieldWrapper, {
+          backgroundColor: null,
+          scale: 2,
+          useCORS: true
+        }).then(canvas => {
+          const imageDataURL = canvas.toDataURL('image/png');
+          document.getElementById('generatedSavedTeamImage').src = imageDataURL;
+          const dlBtn = document.getElementById('downloadSavedTeamImage');
+          dlBtn.href = imageDataURL;
+          dlBtn.style.display = 'inline-flex';
+        });
+      }
+
       const shareUrl = buildTeamUrl(lastSavedTeamId);
 
       // Mostra o modal de sucesso com o link

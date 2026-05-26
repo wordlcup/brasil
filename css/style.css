@@ -904,6 +904,21 @@ body::before {
   margin-bottom: 20px;
 }
 
+/* ——— SHARE MODAL IMAGE PREVIEW ——— */
+#shareImagePreview,
+#savedTeamImagePreview {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#generatedTeamImage,
+#generatedSavedTeamImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
 .share-link-box {
   display: flex;
   gap: 8px;

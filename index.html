@@ -10,6 +10,7 @@
   <meta property="og:title" content="Copa 2026 Brasil — Monte Seu Time">
   <meta property="og:description" content="Monte a escalação ideal do Brasil para a Copa 2026 e compartilhe!">
   <meta property="og:type" content="website">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -247,6 +248,11 @@
     <div class="share-modal">
       <h3>📤 Compartilhar Time</h3>
       <p>Envie este link para seus amigos verem sua escalação!</p>
+      <div id="shareImagePreview">
+        <img id="generatedTeamImage" src="" alt="Sua escalação">
+        <a id="downloadTeamImage" class="btn btn-sm btn-secondary" download="meu-time-brasil-2026.png"
+          style="display: none; margin-top: 10px; width: 100%;">💾 Baixar Imagem</a>
+      </div>
       <div class="share-link-box">
         <input type="text" id="shareLink" readonly>
         <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copiar</button>
@@ -307,6 +313,11 @@
         <p id="savedTeamTitle" style="color: var(--blue-accent); font-weight: bold;"></p>
         <p style="color: var(--text-muted); font-size: 0.9rem;">Seu link exclusivo está pronto! Compartilhe com seus
           amigos.</p>
+      </div>
+      <div id="savedTeamImagePreview">
+        <img id="generatedSavedTeamImage" src="" alt="Sua escalação">
+        <a id="downloadSavedTeamImage" class="btn btn-sm btn-secondary" download="meu-time-ranking.png"
+          style="display: none; margin-top: 10px; width: 100%;">💾 Baixar Imagem</a>
       </div>
       <div class="share-link-box" style="margin-bottom: 12px;">
         <input type="text" id="teamShareLink" readonly style="font-size: 0.85rem;">

@@ -343,6 +343,7 @@ function calcularForcaColetiva(lineup, formationKey = "4-3-3") {
   let totalDef = 0, totalDri = 0, totalPas = 0;
   const clubCount = {};
   let hasLeader = false;
+  const playerIds = players.map(p => p.id);
 
   lineup.forEach((p, index) => {
     if (p) {
@@ -373,6 +374,14 @@ function calcularForcaColetiva(lineup, formationKey = "4-3-3") {
   if (driPasMedia > 78) { bonus += 3; bonuses.push({ label: "Criatividade ofensiva", value: "+3" }); }
   if (hasLeader) { bonus += 2; bonuses.push({ label: "Liderança em campo", value: "+2" }); }
   if (n === 11) { bonus += 5; bonuses.push({ label: "Time completo", value: "+5" }); }
+
+  // Sinergias Especiais
+  SYNERGY_PAIRS.forEach(pair => {
+    if (pair.ids.every(id => playerIds.includes(id))) {
+      bonus += pair.bonus;
+      bonuses.push({ label: pair.label, value: `+${pair.bonus}` });
+    }
+  });
 
   let quimica = 0;
   for (const club of Object.values(clubCount)) {
