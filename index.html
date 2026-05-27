@@ -30,6 +30,7 @@
                         <li><a href="#squad" data-section="squad" onclick="navigateTo('squad')">Elenco</a></li>
                         <li><a href="#builder" data-section="builder" onclick="navigateTo('builder')">Monte seu Time</a></li>
                         <li><a href="#betting" data-section="betting" onclick="navigateTo('betting')">Bolão</a></li>
+                        <li><a href="#album" data-section="album" onclick="navigateTo('album')">🖼️ Álbum</a></li>
                         <li><a href="#leaderboard" data-section="leaderboard" onclick="navigateTo('leaderboard')">Ranking Global</a></li>
                         <li><a href="#" id="loginNavLink" onclick="handleLoginClick(event)"
                           style="color: var(--primary); font-weight: bold;">🔑 Entrar</a></li>
@@ -101,6 +102,69 @@
                       <div id="bettingContainer"
                         style="display: none; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
                         <!-- Jogos renderizados via JS -->
+                      </div>
+                    </section>
+
+                    <div class="section-divider"></div>
+
+                    <!-- ÁLBUM DE FIGURINHAS SECTION -->
+                    <section class="section" id="album" style="display: none;">
+                      <div class="section-header" style="margin-bottom: 20px;">
+                        <h2 style="color: var(--gold); text-shadow: 0 2px 4px rgba(0,0,0,0.1);">✨ Álbum Oficial</h2>
+                        <p>Colecione os 26 convocados da Seleção Brasileira para a Copa 2026!</p>
+                      </div>
+
+                      <div id="albumAuthMessage" class="album-auth-message" style="display: none;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">📚</div>
+                        <h3 style="margin-bottom: 8px;">Crie seu Time para Colecionar</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 16px;">Você precisa estar logado para abrir pacotinhos e salvar suas figurinhas.</p>
+                        <button class="btn btn-primary" onclick="openLoginModal()">Entrar no Meu Time</button>
+                      </div>
+
+                      <div id="albumContent" style="display: none;">
+                        <div class="album-header-info">
+                          <div class="album-progress-wrapper">
+                            <div class="album-progress-text">
+                              <span>Progresso da Coleção</span>
+                              <span class="progress-percent" id="albumProgressPercent">0%</span>
+                            </div>
+                            <div class="album-progress-bar">
+                              <div class="album-progress-fill" id="albumProgressBar" style="width: 0%"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                              <button class="btn btn-sm" onclick="adminCompleteAlbum()" style="font-size: 0.6rem; padding: 2px 6px; background: transparent; border: 1px solid var(--border-subtle); color: var(--text-muted); cursor: pointer;" title="Cheat: Completar Álbum">👑 Cheat</button>
+                              <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right;" id="albumProgressCount">
+                                0 / 26 Figurinhas
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="album-pack-area">
+                            <div class="pack-count-badge">
+                              <span class="pack-icon">🎁</span>
+                              <span id="packCount">0</span>
+                            </div>
+                            <button class="btn-open-pack" id="openPackBtn" onclick="openStickerPack()" disabled>
+                              Abrir Pacotinho
+                            </button>
+                          </div>
+                        </div>
+
+                        <div id="albumCompleteBanner" class="album-complete-banner" style="display: none;">
+                          <div class="complete-icon">🏆</div>
+                          <div class="complete-text">Parabéns! Álbum Completo!</div>
+                          <p style="font-size: 0.9rem; color: #b45309; margin-top: 4px;">Você colecionou todos os 26 craques da Seleção!</p>
+                        </div>
+
+                        <div class="album-filters">
+                          <button class="filter-btn active" data-album-filter="all" onclick="filterAlbumStickers('all')">Todos</button>
+                          <button class="filter-btn" data-album-filter="GK" onclick="filterAlbumStickers('GK')">Goleiros</button>
+                          <button class="filter-btn" data-album-filter="DEF" onclick="filterAlbumStickers('DEF')">Defensores</button>
+                          <button class="filter-btn" data-album-filter="MID" onclick="filterAlbumStickers('MID')">Meias</button>
+                          <button class="filter-btn" data-album-filter="ATK" onclick="filterAlbumStickers('ATK')">Atacantes</button>
+                        </div>
+
+                        <div class="album-grid" id="albumGrid"></div>
                       </div>
                     </section>
 
@@ -190,14 +254,14 @@
                             </div>
                             <div class="bonuses-list" id="bonusesList"></div>
 
-                          <!-- IA ASSISTANT PANEL -->
-                          <div id="aiAssistant" class="ai-assistant-panel">
-                            <div class="ai-header">
-                              <span class="ai-icon">🤖</span>
-                              <span class="ai-title">Dicas do Auxiliar Técnico</span>
+                            <!-- IA ASSISTANT PANEL -->
+                            <div id="aiAssistant" class="ai-assistant-panel">
+                              <div class="ai-header">
+                                <span class="ai-icon">🤖</span>
+                                <span class="ai-title">Dicas do Auxiliar Técnico</span>
+                              </div>
+                              <div id="aiSuggestions" class="ai-content">Escale jogadores para receber análises táticas.</div>
                             </div>
-                            <div id="aiSuggestions" class="ai-content">Escale jogadores para receber análises táticas.</div>
-                          </div>
                           </div>
 
                           <!-- AÇÕES -->
@@ -342,6 +406,20 @@
                             style="flex: 1;">Fechar</button>
                         </div>
                       </div>
+                    </div>
+
+                    <!-- PACK REVEAL MODAL -->
+                    <div class="pack-reveal-overlay" id="packRevealModal">
+                      <h3 class="pack-reveal-title">Novo Pacotinho!</h3>
+                      <p class="pack-reveal-subtitle">Toque nas cartas para revelar os craques</p>
+                      
+                      <div class="pack-cards-container" id="packCardsContainer">
+                        <!-- Renderizado via JS -->
+                      </div>
+                      
+                      <button class="pack-reveal-close" id="packRevealCloseBtn" style="display: none;" onclick="closePackReveal()">
+                        Guardar no Álbum
+                      </button>
                     </div>
 
                     <!-- LOGIN MODAL -->

@@ -10,6 +10,10 @@ let lineup = new Array(11).fill(null);
 let usedPlayerIds = new Set();
 let isFreeMode = false;
 let isDraggingSlot = false;
+let ownedStickers = new Set();
+let stickerDuplicates = {};
+let stickerPacks = 0;
+let currentAlbumFilter = 'all';
 let dragStartIndex = -1;
 let customSlots = []; // Armazena posições personalizadas
 
@@ -39,22 +43,26 @@ function navigateTo(section) {
     document.getElementById('builder').style.display = 'none';
     document.getElementById('betting').style.display = 'none';
     document.getElementById('leaderboard').style.display = 'block';
+    document.getElementById('album').style.display = 'none';
     window.scrollTo(0, 0);
     loadLeaderboard();
-  } else if (section === 'betting') {
+  } else if (section === 'betting' || section === 'album') {
     document.getElementById('home').style.display = 'none';
     document.getElementById('squad').style.display = 'none';
     document.getElementById('builder').style.display = 'none';
     document.getElementById('leaderboard').style.display = 'none';
-    document.getElementById('betting').style.display = 'block';
+    document.getElementById('betting').style.display = section === 'betting' ? 'block' : 'none';
+    document.getElementById('album').style.display = section === 'album' ? 'block' : 'none';
     window.scrollTo(0, 0);
-    loadBettingMatches();
+    if (section === 'betting') loadBettingMatches();
+    if (section === 'album') renderAlbum();
   } else {
     document.getElementById('home').style.display = 'flex';
     document.getElementById('squad').style.display = 'block';
     document.getElementById('builder').style.display = 'block';
     document.getElementById('leaderboard').style.display = 'none';
     document.getElementById('betting').style.display = 'none';
+    document.getElementById('album').style.display = 'none';
 
     const el = document.getElementById(section);
     if (el) {
@@ -63,6 +71,343 @@ function navigateTo(section) {
   }
 
   document.getElementById('navLinks').classList.remove('open');
+}
+
+// =====================================================
+// ÁLBUM DE FIGURINHAS LOGIC
+// =====================================================
+function renderAlbum() {
+  const grid = document.getElementById('albumGrid');
+  const authMessage = document.getElementById('albumAuthMessage');
+  const albumContent = document.getElementById('albumContent');
+  const completeBanner = document.getElementById('albumCompleteBanner');
+  
+  if (!loggedTeamId) {
+    authMessage.style.display = 'block';
+    albumContent.style.display = 'none';
+    return;
+  }
+  
+  authMessage.style.display = 'none';
+  albumContent.style.display = 'block';
+  
+  grid.innerHTML = '';
+  
+  // Filter logic
+  const filteredPlayers = PLAYERS.filter(p => {
+    if (currentAlbumFilter === 'all') return true;
+    if (currentAlbumFilter === 'GK') return p.position === 'GK';
+    if (currentAlbumFilter === 'DEF') return ['RB', 'CB', 'LB', 'RWB', 'LWB'].includes(p.position);
+    if (currentAlbumFilter === 'MID') return ['CDM', 'CM', 'CAM', 'RM', 'LM'].includes(p.position);
+    if (currentAlbumFilter === 'ATK') return ['RW', 'LW', 'ST'].includes(p.position);
+    return true;
+  });
+
+  filteredPlayers.forEach(player => {
+    const isCollected = ownedStickers.has(player.id);
+    const dupCount = stickerDuplicates[player.id] || 0;
+    
+    const card = document.createElement('div');
+    card.className = `sticker-card ${isCollected ? 'collected' : 'not-collected'}`;
+    
+    if (isCollected) {
+      card.innerHTML = `
+        <div class="sticker-inner">
+          <div class="sticker-top-bar">
+            <span class="sticker-num">Nº ${player.id}</span>
+            <span class="sticker-fifa">FIFA WORLD CUP</span>
+            <span class="sticker-flag">🇧🇷</span>
+          </div>
+          <div class="sticker-photo-area">
+            <div class="sticker-side-pattern">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" alt="${player.name}">
+          </div>
+          <div class="sticker-bottom">
+            <div class="sticker-name">${player.shortName}</div>
+            <div class="sticker-detail">${player.positionLabel} | ${player.attributes.PAC} PAC | ${player.attributes.SHO} SHO</div>
+            <div class="sticker-club">${player.club}</div>
+            <div class="sticker-rating-mini">${player.rating}</div>
+          </div>
+          <div class="sticker-shine"></div>
+          ${dupCount > 0 ? `<div class="sticker-duplicate-badge">+${dupCount}</div>` : ''}
+        </div>
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="sticker-mystery">
+          <div class="mystery-number">${player.id}</div>
+          <div class="mystery-icon">?</div>
+          <div class="mystery-pos">${player.positionLabel}</div>
+        </div>
+        <div class="sticker-silhouette">
+          <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" alt="">
+        </div>
+      `;
+    }
+    
+    grid.appendChild(card);
+  });
+
+  // Atualizar progresso
+  const total = PLAYERS.length;
+  const collected = ownedStickers.size;
+  const percent = Math.round((collected / total) * 100);
+  
+  document.getElementById('albumProgressPercent').textContent = `${percent}%`;
+  document.getElementById('albumProgressBar').style.width = `${percent}%`;
+  document.getElementById('albumProgressCount').textContent = `${collected} / ${total} Figurinhas`;
+  
+  document.getElementById('packCount').textContent = stickerPacks;
+  document.getElementById('openPackBtn').disabled = stickerPacks <= 0;
+  
+  if (collected === total) {
+    completeBanner.style.display = 'block';
+    if (!document.getElementById('confettiContainer')) {
+       const confetti = document.createElement('div');
+       confetti.id = 'confettiContainer';
+       confetti.className = 'confetti-container';
+       document.body.appendChild(confetti);
+       
+       for(let i=0; i<50; i++) {
+         const piece = document.createElement('div');
+         piece.className = 'confetti-piece';
+         piece.style.left = Math.random() * 100 + 'vw';
+         piece.style.animationDelay = Math.random() * 3 + 's';
+         piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+         piece.style.backgroundColor = ['#009c3b', '#ffdf00', '#002776'][Math.floor(Math.random()*3)];
+         confetti.appendChild(piece);
+       }
+    }
+  } else {
+    completeBanner.style.display = 'none';
+  }
+}
+
+function filterAlbumStickers(filter) {
+  currentAlbumFilter = filter;
+  document.querySelectorAll('#album .filter-btn').forEach(btn => {
+    if (btn.dataset.albumFilter === filter) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+  renderAlbum();
+}
+
+let revealQueue = [];
+let currentlyRevealing = 0;
+
+async function openStickerPack() {
+  if (stickerPacks <= 0 || !loggedTeamId) return;
+  
+  stickerPacks--;
+  document.getElementById('packCount').textContent = stickerPacks;
+  document.getElementById('openPackBtn').disabled = stickerPacks <= 0;
+  
+  // Sorteia 3 cartas (pesos iguais para simplificar)
+  revealQueue = [];
+  for (let i = 0; i < 3; i++) {
+    revealQueue.push(PLAYERS[Math.floor(Math.random() * PLAYERS.length)]);
+  }
+  
+  // Mostra modal
+  currentlyRevealing = 0;
+  const container = document.getElementById('packCardsContainer');
+  container.innerHTML = '';
+  document.getElementById('packRevealCloseBtn').style.display = 'none';
+  
+  revealQueue.forEach((player, index) => {
+    const isNew = !ownedStickers.has(player.id);
+    const dupCount = stickerDuplicates[player.id] || 0;
+    const isDuplicate = !isNew && revealQueue.findIndex(p => p.id === player.id) < index ? true : (!isNew && dupCount >= 0);
+    
+    // Atualiza estado local 
+    if (isNew && revealQueue.findIndex(p => p.id === player.id) === index) {
+      ownedStickers.add(player.id);
+    } else {
+      stickerDuplicates[player.id] = (stickerDuplicates[player.id] || 0) + 1;
+    }
+    
+    const el = document.createElement('div');
+    el.className = 'reveal-card-wrapper';
+    el.innerHTML = `
+      <div class="reveal-card ${isNew ? 'is-new' : (isDuplicate ? 'is-duplicate' : '')}" id="revealCard_${index}" onclick="revealNextCard(${index})">
+        <div class="reveal-card-front">
+          <div class="front-icon">🎁</div>
+          <div class="front-label">Toca para abrir</div>
+          <div class="front-tap">👆</div>
+        </div>
+        <div class="reveal-card-back">
+          <div class="reveal-duplicate-stamp">REPETIDA</div>
+          <div class="reveal-new-badge">NOVA!</div>
+          <div class="reveal-rating-badge">${player.rating}</div>
+          <div class="reveal-photo">
+            <div class="reveal-side-stripe"></div>
+            <img src="${getPlayerPhoto(player)}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;" alt="${player.name}">
+          </div>
+          <div class="reveal-info">
+            <div class="reveal-name">${player.shortName}</div>
+            <div class="reveal-pos">${player.positionLabel} · ${player.club}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+  
+  document.getElementById('packRevealModal').classList.add('active');
+  
+  // Salva no banco de dados de forma assíncrona
+  await saveStickersToSupabase();
+}
+
+function revealNextCard(index) {
+  const card = document.getElementById(`revealCard_${index}`);
+  if (!card.classList.contains('flipped')) {
+    card.classList.add('flipped');
+    currentlyRevealing++;
+    
+    if (currentlyRevealing === 3) {
+      setTimeout(() => {
+        document.getElementById('packRevealCloseBtn').style.display = 'block';
+      }, 800);
+    }
+  }
+}
+
+function closePackReveal() {
+  document.getElementById('packRevealModal').classList.remove('active');
+  renderAlbum();
+}
+
+async function loadAlbumFromSupabase() {
+  if (!loggedTeamId || typeof supabase === 'undefined') return;
+  
+  try {
+    const { data, error } = await supabase
+      .from('sticker_collections')
+      .select('*')
+      .eq('team_id', loggedTeamId)
+      .maybeSingle();
+      
+    if (error) throw error;
+    
+    if (data) {
+      ownedStickers = new Set(data.sticker_ids || []);
+      stickerDuplicates = data.duplicates || {};
+      stickerPacks = data.packs_available || 0;
+      
+      // Checar reward diário
+      const today = new Date().toISOString().split('T')[0];
+      if (!data.last_pack_date || data.last_pack_date < today) {
+        await grantLoginPacks(data.id, stickerPacks, today);
+      }
+    } else {
+      // Primeira vez, cria registro e dá pacotes iniciais
+      await createStickerCollection();
+    }
+    
+    if (currentSection === 'album') renderAlbum();
+  } catch (err) {
+    console.error("Erro ao carregar álbum:", err);
+  }
+}
+
+async function createStickerCollection() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const initialPacks = 3;
+    
+    const { data, error } = await supabase
+      .from('sticker_collections')
+      .insert([{
+        team_id: loggedTeamId,
+        sticker_ids: [],
+        duplicates: {},
+        packs_available: initialPacks,
+        last_pack_date: today
+      }])
+      .select();
+      
+    if (error) throw error;
+    
+    stickerPacks = initialPacks;
+    ownedStickers = new Set();
+    stickerDuplicates = {};
+    
+    alert("🎁 Você ganhou 3 pacotinhos de figurinhas grátis pelo seu primeiro acesso!");
+  } catch (err) {
+    console.error("Erro ao criar coleção:", err);
+  }
+}
+
+async function grantLoginPacks(collectionId, currentPacks, todayDate) {
+  try {
+    const newTotal = currentPacks + 3;
+    const { error } = await supabase
+      .from('sticker_collections')
+      .update({
+        packs_available: newTotal,
+        last_pack_date: todayDate
+      })
+      .eq('id', collectionId);
+      
+    if (error) throw error;
+    
+    stickerPacks = newTotal;
+    alert("🎁 Bem-vindo de volta! Você ganhou 3 pacotinhos grátis hoje!");
+  } catch (err) {
+    console.error("Erro ao dar pacotes de login:", err);
+  }
+}
+
+async function saveStickersToSupabase() {
+  try {
+    await supabase
+      .from('sticker_collections')
+      .update({
+        sticker_ids: Array.from(ownedStickers),
+        duplicates: stickerDuplicates,
+        packs_available: stickerPacks,
+        updated_at: new Date().toISOString()
+      })
+      .eq('team_id', loggedTeamId);
+  } catch (err) {
+    console.error("Erro ao salvar figurinhas:", err);
+  }
+}
+
+async function grantBettingReward(matchId, isExactScore) {
+  if (!loggedTeamId) return;
+  const packsToGive = isExactScore ? 2 : 1;
+  
+  try {
+    // 1. Pega dados atuais
+    const { data, error: fetchErr } = await supabase
+      .from('sticker_collections')
+      .select('packs_available')
+      .eq('team_id', loggedTeamId)
+      .maybeSingle();
+      
+    if (fetchErr) throw fetchErr;
+    
+    let current = data ? data.packs_available : 0;
+    
+    // 2. Atualiza
+    await supabase
+      .from('sticker_collections')
+      .update({ packs_available: current + packsToGive })
+      .eq('team_id', loggedTeamId);
+      
+    // Atualiza interface se necessário
+    if (data) {
+       stickerPacks = current + packsToGive;
+       if (currentSection === 'album') renderAlbum();
+    }
+    
+  } catch(err) {
+    console.error("Erro ao dar reward de bolão:", err);
+  }
 }
 
 document.getElementById('navToggle').addEventListener('click', () => {
@@ -950,6 +1295,7 @@ async function submitTeamToRanking() {
       loggedOwnerName = ownerName;
       updateLoginNavBar();
       loadBettingMatches();
+      loadAlbumFromSupabase();
 
       // Captura visual para o modal de sucesso
       const fieldWrapper = document.querySelector('.field-wrapper');
@@ -1190,6 +1536,12 @@ function logoutUser() {
   loggedOwnerName = null;
   updateLoginNavBar();
 
+  // Reseta estado do álbum
+  ownedStickers = new Set();
+  stickerDuplicates = {};
+  stickerPacks = 0;
+  if (currentSection === 'album') renderAlbum();
+
   // Atualiza exibição do bolão
   loadBettingMatches();
 
@@ -1255,6 +1607,9 @@ async function loginUser() {
 
     // Reaproveitamos a função que carrega time do banco
     loadTeamFromDatabase(teamId);
+
+    // Carrega álbum
+    loadAlbumFromSupabase();
 
     // Atualiza aba de apostas
     loadBettingMatches();
@@ -1457,3 +1812,30 @@ async function submitGuess(matchId) {
     alert("Erro ao salvar palpite: " + err.message);
   }
 }
+
+// -----------------------------
+// INICIALIZAÇÃO & ADMIN CHEAT
+// -----------------------------
+function init() {
+  renderField();
+  
+  // Se houver algum teamId salvo na sessão/cookie (opcional)
+  if (loggedTeamId) {
+    loadBettingMatches();
+    loadAlbumFromSupabase();
+  }
+}
+
+window.adminCompleteAlbum = async function() {
+  if (!loggedTeamId) {
+    alert("Faça login primeiro para usar o cheat!");
+    return;
+  }
+  
+  PLAYERS.forEach(p => ownedStickers.add(p.id));
+  await saveStickersToSupabase();
+  renderAlbum();
+  alert("👑 Álbum completado com sucesso pelo poder do Admin!");
+};
+
+init();
