@@ -521,8 +521,7 @@ body::before {
 /* ——— BUILDER LAYOUT ——— */
 .builder-layout {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 520px;
   gap: 24px;
   align-items: start;
 }
@@ -699,8 +698,13 @@ body::before {
 
 .sidebar-players {
   flex: 1;
-  overflow-y: auto;
-  padding: 8px;
+  overflow-y: scroll;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  align-content: start;
+  scrollbar-gutter: stable;
 }
 
 .sidebar-players::-webkit-scrollbar {
@@ -725,6 +729,11 @@ body::before {
   cursor: pointer;
   transition: var(--transition);
   border: 1px solid transparent;
+}
+
+.sidebar-player-item.remove-item,
+.sidebar-empty-state {
+  grid-column: span 2;
 }
 
 .sidebar-player-item:hover {

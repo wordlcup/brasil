@@ -478,7 +478,7 @@ function renderSidebarPlayers() {
 
   if (lineup[selectedSlotIndex]) {
     const removeItem = document.createElement('div');
-    removeItem.className = 'sidebar-player-item';
+    removeItem.className = 'sidebar-player-item remove-item';
     removeItem.style.borderColor = '#f87171';
     removeItem.style.background = 'rgba(248, 113, 113, 0.08)';
     removeItem.innerHTML = `
@@ -825,6 +825,15 @@ function openSaveModal() {
     alert('Você precisa escalar os 11 jogadores antes de salvar seu time no Ranking!');
     return;
   }
+
+  // Se já estiver logado, atualiza direto ou confirma
+  if (loggedTeamId) {
+    if (confirm(`Deseja atualizar o seu time "${loggedOwnerName}" com a escalação atual?`)) {
+      submitTeamToRanking();
+    }
+    return;
+  }
+
   document.getElementById('saveModal').classList.add('active');
 }
 
@@ -850,25 +859,28 @@ async function submitTeamToRanking() {
     return;
   }
 
-  const ownerName = document.getElementById('ownerNameInput').value.trim();
-  const ownerEmail = document.getElementById('ownerEmailInput').value.trim();
-  const teamName = document.getElementById('teamNameInput').value.trim();
-  const ownerPassword = document.getElementById('ownerPasswordInput').value.trim();
+  let ownerName, ownerEmail, teamName, ownerPassword;
 
-  if (!ownerName || !teamName || !ownerEmail || !ownerPassword) {
-    alert('Preencha todos os campos: Nome, E-mail, Nome do Time e Senha.');
-    return;
-  }
+  if (!loggedTeamId) {
+    ownerName = document.getElementById('ownerNameInput').value.trim();
+    ownerEmail = document.getElementById('ownerEmailInput').value.trim();
+    teamName = document.getElementById('teamNameInput').value.trim();
+    ownerPassword = document.getElementById('ownerPasswordInput').value.trim();
 
-  if (ownerPassword.length < 4) {
-    alert('A senha deve ter pelo menos 4 caracteres.');
-    return;
-  }
+    if (!ownerName || !teamName || !ownerEmail || !ownerPassword) {
+      alert('Preencha todos os campos: Nome, E-mail, Nome do Time e Senha.');
+      return;
+    }
 
-  // Validação simples de e-mail
-  if (!ownerEmail.includes('@') || !ownerEmail.includes('.')) {
-    alert('Por favor, insira um e-mail válido.');
-    return;
+    if (ownerPassword.length < 4) {
+      alert('A senha deve ter pelo menos 4 caracteres.');
+      return;
+    }
+
+    if (!ownerEmail.includes('@') || !ownerEmail.includes('.')) {
+      alert('Por favor, insira um e-mail válido.');
+      return;
+    }
   }
 
   const filledCount = lineup.filter(Boolean).length;
@@ -878,26 +890,47 @@ async function submitTeamToRanking() {
   }
 
   const playerIds = lineup.map(p => p.id);
+  const currentScore = calcularForcaColetiva(lineup, currentFormation).score;
 
   const btn = document.getElementById('submitTeamBtn');
   btn.disabled = true;
-  btn.textContent = "Salvando...";
+  btn.textContent = loggedTeamId ? "Atualizando..." : "Salvando...";
 
   try {
-    // .select() retorna o registro inserido, incluindo o UUID gerado
-    const { data, error } = await supabase
-      .from('teams')
-      .insert([
-        {
-          owner_name: ownerName,
-          owner_email: ownerEmail,
-          team_name: teamName,
+    let data, error;
+
+    if (loggedTeamId) {
+      // Lógica de UPDATE para usuários logados
+      const result = await supabase
+        .from('teams')
+        .update({
           formation: currentFormation,
           lineup: playerIds,
-          password: ownerPassword
-        }
-      ])
-      .select();
+          total_score: currentScore
+        })
+        .eq('id', loggedTeamId)
+        .select();
+      data = result.data;
+      error = result.error;
+    } else {
+      // Lógica de INSERT para novos cadastros
+      const result = await supabase
+        .from('teams')
+        .insert([
+          {
+            owner_name: ownerName,
+            owner_email: ownerEmail,
+            team_name: teamName,
+            formation: currentFormation,
+            lineup: playerIds,
+            password: ownerPassword,
+            total_score: currentScore
+          }
+        ])
+        .select();
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       if (error.code === '23505') {
