@@ -282,6 +282,70 @@ const FORMATIONS = {
       { pos: "ST", label: "CA", x: 50, y: 20 },
     ]
   },
+  "4-3-1-2": {
+    label: "4-3-1-2 (Losango)",
+    slots: [
+      { pos: "GK", label: "GOL", x: 50, y: 90 },
+      { pos: "RB", label: "LD", x: 82, y: 74 },
+      { pos: "CB", label: "ZAG", x: 64, y: 76 },
+      { pos: "CB", label: "ZAG", x: 36, y: 76 },
+      { pos: "LB", label: "LE", x: 18, y: 74 },
+      { pos: "CDM", label: "VOL", x: 50, y: 60 },
+      { pos: "CM", label: "MEI", x: 70, y: 50 },
+      { pos: "CM", label: "MEI", x: 30, y: 50 },
+      { pos: "CAM", label: "MEA", x: 50, y: 38 },
+      { pos: "ST", label: "CA", x: 60, y: 22 },
+      { pos: "ST", label: "CA", x: 40, y: 22 },
+    ]
+  },
+  "3-4-3": {
+    label: "3-4-3",
+    slots: [
+      { pos: "GK", label: "GOL", x: 50, y: 90 },
+      { pos: "CB", label: "ZAG", x: 70, y: 76 },
+      { pos: "CB", label: "ZAG", x: 50, y: 76 },
+      { pos: "CB", label: "ZAG", x: 30, y: 76 },
+      { pos: "RM", label: "MD", x: 85, y: 55 },
+      { pos: "CM", label: "MEI", x: 60, y: 50 },
+      { pos: "CM", label: "MEI", x: 40, y: 50 },
+      { pos: "LM", label: "ME", x: 15, y: 55 },
+      { pos: "RW", label: "PD", x: 75, y: 25 },
+      { pos: "ST", label: "CA", x: 50, y: 20 },
+      { pos: "LW", label: "PE", x: 25, y: 25 },
+    ]
+  },
+  "5-3-2": {
+    label: "5-3-2",
+    slots: [
+      { pos: "GK", label: "GOL", x: 50, y: 90 },
+      { pos: "RWB", label: "ALA D", x: 88, y: 70 },
+      { pos: "CB", label: "ZAG", x: 70, y: 76 },
+      { pos: "CB", label: "ZAG", x: 50, y: 78 },
+      { pos: "CB", label: "ZAG", x: 30, y: 76 },
+      { pos: "LWB", label: "ALA E", x: 12, y: 70 },
+      { pos: "CM", label: "MEI", x: 65, y: 50 },
+      { pos: "CM", label: "MEI", x: 35, y: 50 },
+      { pos: "CDM", label: "VOL", x: 50, y: 58 },
+      { pos: "ST", label: "CA", x: 60, y: 25 },
+      { pos: "ST", label: "CA", x: 40, y: 25 },
+    ]
+  },
+  "4-2-2-2": {
+    label: "4-2-2-2 (Quadrado)",
+    slots: [
+      { pos: "GK", label: "GOL", x: 50, y: 90 },
+      { pos: "RB", label: "LD", x: 82, y: 74 },
+      { pos: "CB", label: "ZAG", x: 64, y: 76 },
+      { pos: "CB", label: "ZAG", x: 36, y: 76 },
+      { pos: "LB", label: "LE", x: 18, y: 74 },
+      { pos: "CDM", label: "VOL", x: 60, y: 58 },
+      { pos: "CDM", label: "VOL", x: 40, y: 58 },
+      { pos: "RM", label: "MD", x: 75, y: 38 },
+      { pos: "LM", label: "ME", x: 25, y: 38 },
+      { pos: "ST", label: "CA", x: 60, y: 20 },
+      { pos: "ST", label: "CA", x: 40, y: 20 },
+    ]
+  },
 };
 
 // =====================================================
@@ -292,6 +356,10 @@ const POSITION_GROUPS = {
   RB: ["RB"],
   CB: ["CB"],
   LB: ["LB"],
+  RM: ["RM", "RW", "CAM"], // Right Midfielder
+  LM: ["LM", "LW", "CAM"], // Left Midfielder
+  RWB: ["RWB", "RB", "RM"], // Right Wing Back
+  LWB: ["LWB", "LB", "LM"], // Left Wing Back
   CDM: ["CDM", "CM"],
   CM: ["CM", "CAM", "CDM"],
   CAM: ["CAM", "CM", "RW", "LW"],
@@ -299,6 +367,17 @@ const POSITION_GROUPS = {
   LW: ["LW", "ST", "CAM", "RW"],
   ST: ["ST", "RW", "LW", "CAM"],
 };
+
+// =====================================================
+// SINERGIAS ESPECIAIS (Bônus de Entrosamento)
+// =====================================================
+const SYNERGY_PAIRS = [
+  { ids: [26, 17], label: "Dancinha (Vini + Paquetá)", bonus: 5 }, // Vini Jr e Paquetá
+  { ids: [11, 1], label: "Muralha (Marquinhos + Alisson)", bonus: 3 }, // Marquinhos e Alisson
+  { ids: [14, 13], label: "Cão de Guarda (Casemiro + Bruno G.)", bonus: 4 }, // Casemiro e Bruno G.
+  { ids: [26, 18], label: "Real Futuro (Vini + Endrick)", bonus: 4 }, // Vini e Endrick
+  { ids: [10, 6, 4], label: "Base Rubro-Negra", bonus: 6 } // Leo Pereira, Danilo e Alex Sandro
+];
 
 // =====================================================
 // ALGORITMO — FORÇA COLETIVA
@@ -311,6 +390,10 @@ function getIndividualRating(player, targetPos = null) {
     RB: { PAC: 0.20, SHO: 0.05, PAS: 0.15, DRI: 0.12, DEF: 0.38, PHY: 0.10 },
     CB: { PAC: 0.10, SHO: 0.02, PAS: 0.10, DRI: 0.05, DEF: 0.55, PHY: 0.18 },
     LB: { PAC: 0.20, SHO: 0.05, PAS: 0.15, DRI: 0.12, DEF: 0.38, PHY: 0.10 },
+    RM: { PAC: 0.20, SHO: 0.10, PAS: 0.20, DRI: 0.20, DEF: 0.15, PHY: 0.15 },
+    LM: { PAC: 0.20, SHO: 0.10, PAS: 0.20, DRI: 0.20, DEF: 0.15, PHY: 0.15 },
+    RWB: { PAC: 0.25, SHO: 0.08, PAS: 0.18, DRI: 0.15, DEF: 0.24, PHY: 0.10 },
+    LWB: { PAC: 0.25, SHO: 0.08, PAS: 0.18, DRI: 0.15, DEF: 0.24, PHY: 0.10 },
     CDM: { PAC: 0.08, SHO: 0.10, PAS: 0.20, DRI: 0.14, DEF: 0.38, PHY: 0.10 },
     CM: { PAC: 0.10, SHO: 0.14, PAS: 0.27, DRI: 0.20, DEF: 0.14, PHY: 0.15 },
     CAM: { PAC: 0.12, SHO: 0.20, PAS: 0.27, DRI: 0.27, DEF: 0.04, PHY: 0.10 },
@@ -404,3 +487,4 @@ window.FORMATIONS = FORMATIONS;
 window.POSITION_GROUPS = POSITION_GROUPS;
 window.calcularForcaColetiva = calcularForcaColetiva;
 window.getIndividualRating = getIndividualRating;
+window.SYNERGY_PAIRS = SYNERGY_PAIRS;

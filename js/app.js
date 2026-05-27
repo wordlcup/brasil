@@ -8,6 +8,10 @@ let currentFormation = '4-3-3';
 let selectedSlotIndex = -1;
 let lineup = new Array(11).fill(null);
 let usedPlayerIds = new Set();
+let isFreeMode = false;
+let isDraggingSlot = false;
+let dragStartIndex = -1;
+let customSlots = []; // Armazena posições personalizadas
 
 // Placeholder para jogadores sem foto
 const PLACEHOLDER_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%2394a3b8%22%3E%3Cpath%20d%3D%22M12%2012c2.21%200%204-1.79%204-4s-1.79-4-4-4-4%201.79-4%204%201.79%204%204%204zm0%202c-2.67%200-8%201.34-8%204v2h16v-2c0-2.66-5.33-4-8-4z%22%2F%3E%3C%2Fsvg%3E";
@@ -282,8 +286,10 @@ function renderField() {
 
   `;
 
-  const formation = FORMATIONS[currentFormation];
-  formation.slots.forEach((slot, i) => {
+  // Usa customSlots se estiver no modo livre, caso contrário usa a formação padrão
+  const slotsToRender = isFreeMode ? customSlots : FORMATIONS[currentFormation].slots;
+
+  slotsToRender.forEach((slot, i) => {
     const cx = (slot.x / 100) * W;
     const cy = (slot.y / 100) * H;
     const player = lineup[i];
@@ -308,10 +314,11 @@ function renderField() {
       <g class="field-slot ${isSelected ? 'selected' : ''} ${isFilled ? 'filled' : ''}"
          data-index="${i}" 
          onclick="selectSlot(${i})"
+         onpointerdown="startSlotDrag(event, ${i})"
          ondragover="allowDrop(event)"
          ondragleave="dragLeave(event)"
          ondrop="dropSlot(event, ${i})"
-         ${isFilled ? `draggable="true" ondragstart="dragStartFromSlot(event, ${i}, ${player.id})"` : ''}
+         ${!isFreeMode && isFilled ? `draggable="true" ondragstart="dragStartFromSlot(event, ${i}, ${player.id})"` : ''}
          style="cursor: ${isFilled ? 'grab' : 'pointer'};">
          
         <circle cx="${cx}" cy="${cy}" r="28" fill="${fillGrad}" stroke="${strokeColor}" stroke-width="${strokeWidth}" class="slot-ring"
@@ -334,6 +341,58 @@ function renderField() {
   });
 
   svg.innerHTML = svgContent;
+}
+
+// Lógica para Arrastar Slots no Modo Livre
+function toggleFreeMode() {
+  isFreeMode = !isFreeMode;
+  const status = document.getElementById('freeModeStatus');
+  const btn = document.getElementById('freeModeBtn');
+
+  if (isFreeMode) {
+    // Inicializa posições personalizadas com a formação atual
+    customSlots = JSON.parse(JSON.stringify(FORMATIONS[currentFormation].slots));
+    status.textContent = "ON";
+    btn.style.background = "var(--primary)";
+    btn.style.color = "white";
+  } else {
+    status.textContent = "OFF";
+    btn.style.background = "var(--bg-primary)";
+    btn.style.color = "var(--primary)";
+  }
+  renderField();
+}
+
+function startSlotDrag(e, index) {
+  if (!isFreeMode) return;
+  isDraggingSlot = true;
+  dragStartIndex = index;
+  document.addEventListener('pointermove', moveSlot);
+  document.addEventListener('pointerup', stopSlotDrag);
+}
+
+function moveSlot(e) {
+  if (!isDraggingSlot || dragStartIndex === -1) return;
+
+  const svg = document.getElementById('fieldSvg');
+  const rect = svg.getBoundingClientRect();
+
+  // Converte coordenadas do mouse para coordenadas internas do SVG (0-100)
+  let x = ((e.clientX - rect.left) / rect.width) * 100;
+  let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+  // Limites do campo
+  customSlots[dragStartIndex].x = Math.max(5, Math.min(95, x));
+  customSlots[dragStartIndex].y = Math.max(5, Math.min(95, y));
+
+  renderField();
+}
+
+function stopSlotDrag() {
+  isDraggingSlot = false;
+  dragStartIndex = -1;
+  document.removeEventListener('pointermove', moveSlot);
+  document.removeEventListener('pointerup', stopSlotDrag);
 }
 
 // =====================================================
