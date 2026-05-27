@@ -482,9 +482,63 @@ function calcularForcaColetiva(lineup, formationKey = "4-3-3") {
   return { score, grade, bonuses };
 }
 
+// =====================================================
+// MOTOR DE INSIGHTS DE IA
+// =====================================================
+function getAIAssistantInsights(lineup, currentFormationKey) {
+  const insights = [];
+  const playersOnField = lineup.filter(Boolean);
+  const n = playersOnField.length;
+
+  if (n === 0) return [
+    "Bem-vindo, Professor! Comece clicando em uma posição no campo para escalar seu primeiro craque.",
+    "💡 Dica: O 4-3-3 é a formação ideal para explorar a velocidade do Vini Jr."
+  ];
+
+  if (n < 3) insights.push("Boa escolha inicial! Continue preenchendo as posições para ver as sinergias.");
+
+  // 1. Sugestão de Melhor Formação
+  let bestForm = currentFormationKey;
+  let currentScore = calcularForcaColetiva(lineup, currentFormationKey).score;
+  let maxScore = currentScore;
+
+  for (const fKey in FORMATIONS) {
+    const s = calcularForcaColetiva(lineup, fKey).score;
+    if (s > maxScore) {
+      maxScore = s;
+      bestForm = fKey;
+    }
+  }
+
+  if (bestForm !== currentFormationKey) {
+    insights.push(`💡 A formação <b>${bestForm}</b> aproveita melhor esses jogadores (Força: ${maxScore}).`);
+  }
+
+  // 2. Sugestão de Sinergia (quase completas)
+  const playerIds = playersOnField.map(p => p.id);
+  SYNERGY_PAIRS.forEach(pair => {
+    const matches = pair.ids.filter(id => playerIds.includes(id));
+    if (matches.length > 0 && matches.length < pair.ids.length) {
+      const missingIds = pair.ids.filter(id => !playerIds.includes(id));
+      const missingPlayer = PLAYERS.find(p => p.id === missingIds[0]);
+      if (missingPlayer) {
+        insights.push(`✨ Coloque <b>${missingPlayer.shortName}</b> para ativar a sinergia <i>${pair.label}</i>.`);
+      }
+    }
+  });
+
+  // 3. Alerta de Posicionamento Crítico
+  if (currentScore < 80 && playersOnField.length > 8) {
+    insights.push("⚠️ Muitos jogadores fora de suas posições ideais estão derrubando a média.");
+  }
+
+  return insights.length > 0 ? insights : ["Sua tática parece sólida! O entrosamento está evoluindo."];
+}
+
 window.PLAYERS = PLAYERS;
 window.FORMATIONS = FORMATIONS;
 window.POSITION_GROUPS = POSITION_GROUPS;
 window.calcularForcaColetiva = calcularForcaColetiva;
 window.getIndividualRating = getIndividualRating;
 window.SYNERGY_PAIRS = SYNERGY_PAIRS;
+window.getAIAssistantInsights = getAIAssistantInsights;

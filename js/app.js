@@ -441,9 +441,10 @@ function renderSidebarPlayers() {
     title.textContent = 'Selecione uma posição';
     subtitle.textContent = 'Clique em um slot no campo para começar';
     container.innerHTML = `
-      <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
-        <div style="font-size: 2.5rem; margin-bottom: 12px;">👆</div>
-        Arraste os jogadores para o campo ou selecione uma posição
+      <div class="sidebar-empty-state">
+        <span class="icon">🏃‍♂️</span>
+        <h4>Monte sua Seleção</h4>
+        <p>Arraste jogadores diretamente para o campo ou clique em um slot para escolher.</p>
       </div>
     `;
 
@@ -612,10 +613,11 @@ function updateStrength() {
   const gradeEl = document.getElementById('gradeLabel');
   const barEl = document.getElementById('strengthBarFill');
   const bonusesEl = document.getElementById('bonusesList');
+  const aiSuggestionsEl = document.getElementById('aiSuggestions');
 
   animateNumber(numberEl, result.score);
-
   gradeEl.textContent = result.grade;
+  barEl.style.width = `${result.score}%`;
 
   if (result.grade.includes('Elite')) {
     gradeEl.style.color = '#e040fb';
@@ -630,6 +632,7 @@ function updateStrength() {
     gradeEl.style.color = '#cd7f32';
     barEl.style.background = 'linear-gradient(90deg, #92400e, #cd7f32)'; // Cor Bronze
   } else if (result.grade === '—') { // Adicionado para o caso inicial ou time vazio
+    gradeEl.textContent = "AGUARDANDO";
     gradeEl.style.color = 'var(--text-muted)';
     barEl.style.background = 'var(--border-subtle)'; // Cor neutra
     barEl.style.width = '0%'; // Barra vazia
@@ -638,13 +641,17 @@ function updateStrength() {
     barEl.style.background = 'var(--blue-accent)';
   }
 
-  barEl.style.width = `${result.score}%`;
-
   bonusesEl.innerHTML = result.bonuses.map(b => `
     <div class="bonus-item">
       <span class="bonus-label">${b.label}</span>
       <span class="bonus-value">${b.value}</span>
     </div>
+  `).join('');
+
+  // Atualiza IA Assistant
+  const insights = getAIAssistantInsights(lineup, currentFormation);
+  aiSuggestionsEl.innerHTML = insights.map(text => `
+    <div style="margin-bottom: 6px; padding-left: 12px; border-left: 2px solid var(--primary);">${text}</div>
   `).join('');
 }
 
